@@ -201,7 +201,8 @@ namespace Falcor
             return error("Could not load model: " + file);
         }
 
-        pModel->setFilename(modelFile.GetString());
+        pModel->setRelativeFilename(modelFile.GetString());
+        pModel->setAbsoluteFilename(file);
 
         bool instanceAdded = false;
 
@@ -300,13 +301,13 @@ namespace Falcor
                 }
                 else
                 {
-                    return error("Unknown key \"" + key + "\" when parsing material overrides for model " + pModel->getFilename());
+                    return error("Unknown key \"" + key + "\" when parsing material overrides for model " + pModel->getRelativeFilename());
                 }
             }
 
             if (meshID == (uint32_t)-1 || materialID == (uint32_t)-1)
             {
-                return error("Missing data while parsing when parsing material overrides for model " + pModel->getFilename());
+                return error("Missing data while parsing when parsing material overrides for model " + pModel->getRelativeFilename());
             }
 
             // Apply override

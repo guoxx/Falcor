@@ -219,13 +219,21 @@ namespace Falcor
         */
         const std::string& getName() const { return mName; }
 
-        /** Set the model's filename
+        /** Set the model's filename relative to data directory
         */
-        void setFilename(const std::string& filename) { mFilename = filename; }
+        void setRelativeFilename(const std::string& filename) { mRelativeFilename = canonicalizeFilename(filename); }
 
-        /** Get the model's filename
+        /** Get the model's filename relative to data directory
         */
-        const std::string& getFilename() const { return mFilename; }
+        const std::string& getRelativeFilename() const { return mRelativeFilename; }
+
+        /** Set the model's absolute filename
+        */
+        void setAbsoluteFilename(const std::string& filename) { mAbsoluteFilename = canonicalizeFilename(filename); }
+
+        /** Get the model's absolute filename
+        */
+        const std::string& getAbsoluteFilename() const { return mAbsoluteFilename; }
 
         /** Get global ID of the model
         */
@@ -261,7 +269,8 @@ namespace Falcor
         AnimationController::UniquePtr mpAnimationController;
 
         std::string mName;
-        std::string mFilename;
+        std::string mRelativeFilename;
+        std::string mAbsoluteFilename;
 
         static uint32_t sModelCounter;
 

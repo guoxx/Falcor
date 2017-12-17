@@ -451,7 +451,7 @@ namespace Falcor
         // Write the data
         std::vector<uint8_t> data = gpDevice->getRenderContext()->readTextureSubresource(pTexture, 0);
 
-        writeString(mStream, pTexture->getSourceFilename());
+        writeString(mStream, pTexture->getRelativeSourceFilename());
         mStream.write("BinImage", 8);
         // Version, width, height, bytes-per-pixel, channel count, FormatID, DataSize
         mStream << (int32_t)2 << (int32_t)width << (int32_t)height << bpp << (int32_t)0 << formatID << (int32_t)data.size();

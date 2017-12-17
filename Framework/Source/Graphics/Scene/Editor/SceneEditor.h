@@ -157,6 +157,7 @@ namespace Falcor
         // Global functions
         void setAmbientIntensity(Gui* pGui);
         void saveScene();
+        void saveSceneToMitsuba();
 
         void renderModelAnimation(Gui* pGui);
 

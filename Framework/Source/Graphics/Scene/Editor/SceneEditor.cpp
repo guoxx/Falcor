@@ -33,6 +33,7 @@
 #include "glm/detail/func_trigonometric.hpp"
 #include "Utils/Platform/OS.h"
 #include "Graphics/Scene/SceneExporter.h"
+#include "Graphics/Scene/Exporter/SceneMitsubaExporter.h"
 #include "Graphics/Model/AnimationController.h"
 #include "API/Device.h"
 #include "Graphics/Model/ModelRenderer.h"
@@ -411,6 +412,22 @@ namespace Falcor
             mSceneDirty = false;
         }
     }
+
+	void SceneEditor::saveSceneToMitsuba()
+	{
+		static const char* kFileFormatStringMitsuba = "XML File\0*.xml\0\0";
+
+		std::string filename;
+		if (saveFileDialog(kFileFormatStringMitsuba, filename))
+		{
+            auto backBufferFBO = gpDevice->getSwapChainFbo();
+            const float backBufferWidth = backBufferFBO->getWidth();
+            const float backBufferHeight = backBufferFBO->getHeight();
+
+			SceneMitsubaExporter::saveScene(filename, mpScene, backBufferWidth, backBufferHeight);
+			mSceneDirty = false;
+		}
+	}
 
     //////////////////////////////////////////////////////////////////////////
     //// End callbacks
@@ -1113,6 +1130,11 @@ namespace Falcor
         {
             saveScene();
         }
+
+		if (pGui->addButton("Export Scene To Mitsuba"))
+		{
+			saveSceneToMitsuba();
+		}
 
         // Gizmo Selection
         int32_t selectedGizmo = (int32_t)mActiveGizmoType;

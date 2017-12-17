@@ -3,6 +3,8 @@
             packageLocation="github.com/shader-slang/slang/releases/download/v${version}/slang-${version}-win64.zip"/>
     <remote name="github-slang-linux" type="https"
             packageLocation="github.com/shader-slang/slang/releases/download/v${version}/slang-${version}-linux-x86_64.zip"/>
+    <remote name="github-pugixml" type="https"
+            packageLocation="github.com/zeux/pugixml/releases/download/v${version}/pugixml-${version}.zip"/>
     <dependency name="openvr" linkPath="Framework/Externals/OpenVR">
         <package name="openvr" version="1.0.8" platforms="win"/>
         <package name="openvr" version="1.0.8-linux" platforms="linux"/>
@@ -31,6 +33,9 @@
     <dependency name="slang" linkPath="Framework/Externals/Slang">
         <package name="slang" version="0.9.5" remotes="github-slang" />
         <package name="slang" version="0.9.5" remotes="github-slang-linux" platforms="linux" />
+    </dependency>
+    <dependency name="pugixml" linkPath="Framework/Externals/pugixml">
+        <package name="pugixml" version="1.8.1" remotes="github-pugixml" />
     </dependency>
     <dependency name="glfw" linkPath="Framework/Externals/GLFW">
         <package name="glfw" version="3.2.1" platforms="win" />

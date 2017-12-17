@@ -496,6 +496,12 @@
     <ClCompile Include="API\D3D12\LowLevel\D3D12DescriptorPool.cpp">
       <Filter>API\D3D12\LowLevel</Filter>
     </ClCompile>
+    <ClCompile Include="..\Externals\pugixml\pugixml-1.8\src\pugixml.cpp">
+      <Filter>Externals\pugixml</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Scene\Exporter\SceneMitsubaExporter.cpp">
+      <Filter>Graphics\Scene\Exporter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Graphics\Model\Animation.h">
@@ -1614,6 +1620,15 @@
     <ClInclude Include="API\D3D12\LowLevel\D3D12DescriptorHeap.h">
       <Filter>API\D3D12\LowLevel</Filter>
     </ClInclude>
+    <ClInclude Include="..\Externals\pugixml\pugixml-1.8\src\pugiconfig.hpp">
+      <Filter>Externals\pugixml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Externals\pugixml\pugixml-1.8\src\pugixml.hpp">
+      <Filter>Externals\pugixml</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Scene\Exporter\SceneMitsubaExporter.h">
+      <Filter>Graphics\Scene\Exporter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Externals">
@@ -1789,6 +1804,12 @@
     </Filter>
     <Filter Include="API\D3D12\LowLevel">
       <UniqueIdentifier>{eaf2bd94-5891-4207-b40a-3e2461da6295}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Externals\pugixml">
+      <UniqueIdentifier>{4b11c086-d20f-44be-a5cc-f5d99e98b181}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Scene\Exporter">
+      <UniqueIdentifier>{2e87272a-301b-4b1a-85a9-d8a74c50e075}</UniqueIdentifier>
     </Filter>
     <Filter Include="Graphics\Program">
       <UniqueIdentifier>{a2a4ca1c-043f-4b99-8d25-5f413799c4c8}</UniqueIdentifier>

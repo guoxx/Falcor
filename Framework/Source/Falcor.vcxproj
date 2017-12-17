@@ -24,6 +24,7 @@
     <ClCompile Include="..\Externals\dear_imgui\imgui_draw.cpp" />
     <ClCompile Include="..\Externals\GLM\glm\detail\dummy.cpp" />
     <ClCompile Include="..\Externals\GLM\glm\detail\glm.cpp" />
+    <ClCompile Include="..\Externals\pugixml\pugixml-1.8\src\pugixml.cpp" />
     <ClCompile Include="API\BlendState.cpp" />
     <ClCompile Include="API\Buffer.cpp" />
     <ClCompile Include="API\ComputeContext.cpp" />
@@ -359,6 +360,7 @@
     </ClCompile>
     <ClCompile Include="Graphics\Scene\Editor\SceneEditor.cpp" />
     <ClCompile Include="Graphics\Scene\Editor\SceneEditorRenderer.cpp" />
+    <ClCompile Include="Graphics\Scene\Exporter\SceneMitsubaExporter.cpp" />
     <ClCompile Include="Graphics\Scene\Scene.cpp" />
     <ClCompile Include="Graphics\Scene\SceneExporter.cpp" />
     <ClCompile Include="Graphics\Scene\SceneImporter.cpp" />
@@ -662,6 +664,8 @@
     <ClInclude Include="..\Externals\GLM\glm\gtx\vector_angle.hpp" />
     <ClInclude Include="..\Externals\GLM\glm\gtx\vector_query.hpp" />
     <ClInclude Include="..\Externals\GLM\glm\gtx\wrap.hpp" />
+    <ClInclude Include="..\Externals\pugixml\pugixml-1.8\src\pugiconfig.hpp" />
+    <ClInclude Include="..\Externals\pugixml\pugixml-1.8\src\pugixml.hpp" />
     <ClInclude Include="API\BlendState.h" />
     <ClInclude Include="API\Buffer.h" />
     <ClInclude Include="API\ComputeContext.h" />
@@ -816,6 +820,7 @@
     </ClInclude>
     <ClInclude Include="Graphics\Scene\Editor\SceneEditor.h" />
     <ClInclude Include="Graphics\Scene\Editor\SceneEditorRenderer.h" />
+    <ClInclude Include="Graphics\Scene\Exporter\SceneMitsubaExporter.h" />
     <ClInclude Include="Graphics\Scene\Scene.h" />
     <ClInclude Include="Graphics\Scene\SceneExporter.h" />
     <ClInclude Include="Graphics\Scene\SceneExportImportCommon.h" />

@@ -869,7 +869,7 @@ namespace Falcor
                         else
                         {
                             auto pTexture = Texture::create2D(texData[texID].width, texData[texID].height, texSig.format, 1, Texture::kMaxPossible, texSig.pData);
-                            pTexture->setSourceFilename(texData[texID].name);
+                            pTexture->setRelativeSourceFilename(texData[texID].name);
                             textures[texSig] = pTexture;
                             basicMaterial.pTextures[falcorType] = pTexture;
                         }

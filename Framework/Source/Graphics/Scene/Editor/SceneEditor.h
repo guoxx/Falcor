@@ -104,6 +104,7 @@ namespace Falcor
         void renderGlobalElements(Gui* pGui);
         void renderPathElements(Gui* pGui);
         void renderMaterialElements(Gui* pGui);
+        void renderMitsubaElements(Gui* pGui);
 
         // Model functions
         void addModel(Gui* pGui);
@@ -158,6 +159,7 @@ namespace Falcor
         void setAmbientIntensity(Gui* pGui);
         void saveScene();
         void saveSceneToMitsuba();
+        void compareSceneWithMitsuba();
 
         void renderModelAnimation(Gui* pGui);
 

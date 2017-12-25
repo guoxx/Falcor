@@ -75,6 +75,9 @@ void ImageComparer::onLoad()
 {
     initShader();
 
+    // sRGB have to the initialize first cause it will impact the behaviour of loadImage
+    mSrgb = mArgList.argExists("srgb");
+
     if (mArgList.argExists("left"))
     {
         mLeftFilename = mArgList["left"].asString();
@@ -89,8 +92,6 @@ void ImageComparer::onLoad()
     {
         mExposure = mArgList["exposure"].asFloat();
     }
-
-    mSrgb = mArgList.argExists("srgb");
 }
 
 void ImageComparer::initShader()

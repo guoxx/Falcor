@@ -425,9 +425,65 @@ namespace Falcor
             const float backBufferHeight = backBufferFBO->getHeight();
 
 			SceneMitsubaExporter::saveScene(filename, mpScene, backBufferWidth, backBufferHeight);
-			mSceneDirty = false;
 		}
 	}
+
+    void SceneEditor::compareSceneWithMitsuba()
+    {
+        std::string executableName = getExecutableName();
+        std::string outputDirectory = getExecutableDirectory();
+        outputDirectory += "/Temp";
+        if (!isDirectoryExists(outputDirectory))
+        {
+            createDirectory(outputDirectory);
+        }
+
+        std::string mitsubaSceneFile;
+        std::string mitsubaRenderedFile;
+        std::string falcorRenderedFile;
+        if (!findAvailableFilename(executableName + "_scene", outputDirectory, "xml", mitsubaSceneFile) ||
+            !findAvailableFilename(executableName + "_mitsuba", outputDirectory, "exr", mitsubaRenderedFile) ||
+            !findAvailableFilename(executableName + "_falcor", outputDirectory, "png", falcorRenderedFile))
+        {
+            logError("Could not find available filename for rendering comparison");
+            return;
+        }
+
+		{
+            // export mitsuba scene file
+            const auto backBufferFBO = gpDevice->getSwapChainFbo();
+            const float backBufferWidth = backBufferFBO->getWidth();
+            const float backBufferHeight = backBufferFBO->getHeight();
+			SceneMitsubaExporter::saveScene(mitsubaSceneFile, mpScene, backBufferWidth, backBufferHeight);
+
+            // rendered by mitsuba
+		    std::string opts = "-o \"" + mitsubaRenderedFile + "\"";
+            opts += " \"" + mitsubaSceneFile + "\"";
+		    Falcor::createProcess("mitsuba", opts, true);
+        }
+
+        // save screenshot
+        Texture::SharedPtr pTexture = gpDevice->getSwapChainFbo()->getColorTexture(0);
+        pTexture->captureToFile(0, 0, falcorRenderedFile);
+
+        {
+            // wait for screenshot saving thread
+            int counter = 20;
+            while (counter > 0)
+            {
+                if (doesFileExist(falcorRenderedFile)) { break; }
+
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                --counter;
+            }
+        }
+
+        // launch ImageComparer
+        std::string opts = "-left " + falcorRenderedFile;
+        opts += " -right " + mitsubaRenderedFile;
+        opts += " -srgb";
+        Falcor::createProcess("ImageComparer", opts, false);
+    }
 
     //////////////////////////////////////////////////////////////////////////
     //// End callbacks
@@ -1009,6 +1065,22 @@ namespace Falcor
         }
     }
 
+    void SceneEditor::renderMitsubaElements(Gui* pGui)
+    {
+        if (pGui->beginGroup("Mitsuba"))
+        {
+            if (pGui->addButton("Export To Mitsuba"))
+            {
+                saveSceneToMitsuba();
+            }
+            if (pGui->addButton("Compare With Mitsuba"))
+            {
+                compareSceneWithMitsuba();
+            }
+            pGui->endGroup();
+        }        
+    }
+
     void SceneEditor::renderGlobalElements(Gui* pGui)
     {
         if (pGui->beginGroup("Global Settings"))
@@ -1131,17 +1203,13 @@ namespace Falcor
             saveScene();
         }
 
-		if (pGui->addButton("Export Scene To Mitsuba"))
-		{
-			saveSceneToMitsuba();
-		}
-
         // Gizmo Selection
         int32_t selectedGizmo = (int32_t)mActiveGizmoType;
         pGui->addRadioButtons(kGizmoSelectionButtons, selectedGizmo);
         setActiveGizmo((Gizmo::Type)selectedGizmo, mSelectedInstances.size() > 0 && mHideWireframe == false);
 
         pGui->addSeparator();
+        renderMitsubaElements(pGui);
         renderGlobalElements(pGui);
         renderCameraElements(pGui);
         renderPathElements(pGui);

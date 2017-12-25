@@ -351,4 +351,60 @@ namespace Falcor
     {
         return __popcnt(a);
     }
+
+    uint32_t createProcess(const std::string& executable, const std::string& args, bool waitForProc)
+    {
+        uint32_t retCode = 0;
+
+        const std::string temp = executable + " " + args;
+        char commandline[1024];
+        memset(commandline, 0x00, sizeof(commandline));
+        std::memcpy(commandline, temp.c_str(), std::min(temp.length(), sizeof(commandline) - 1));
+        assert(sizeof(commandline) - 1 >= temp.length());
+
+        PROCESS_INFORMATION procInfo;
+        STARTUPINFOA startupInfo;
+
+        memset(&startupInfo, 0x00, sizeof(startupInfo));
+        startupInfo.cb = sizeof startupInfo;
+
+        uint32_t creationFlags = 0;
+        //creationFlags |= CREATE_NO_WINDOW;
+
+        BOOL success = CreateProcessA(nullptr,
+                                     commandline,
+                                     nullptr,
+                                     nullptr,
+                                     false,
+                                     creationFlags,
+                                     nullptr,
+                                     nullptr,
+                                     &startupInfo,
+                                     &procInfo
+        );
+
+        if (!success)
+        {
+            const std::string errMsg = "Failed to launch process:" + executable + " with command line options:" + commandline;
+            logError(errMsg, true);
+
+            retCode = -1;
+        }
+        else
+        {
+            if (waitForProc)
+            {
+                WaitForSingleObject(procInfo.hProcess, INFINITE);
+
+                DWORD exitCode;
+                BOOL result = GetExitCodeProcess(procInfo.hProcess, &exitCode);
+                retCode = exitCode;
+            }
+
+            CloseHandle(procInfo.hProcess);
+            CloseHandle(procInfo.hThread);
+        }
+
+        return retCode;
+    }
 }

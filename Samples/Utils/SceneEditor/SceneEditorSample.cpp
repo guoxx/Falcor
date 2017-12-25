@@ -48,6 +48,8 @@ void SceneEditorSample::onGuiRender()
         {
             mpGui->addCheckBox("Preview Camera", mCameraLiveViewMode);
         }
+
+        mpGui->addCheckBox("Override Scene Camera Aspect Ratio By Viewport", mOverrideCameraAspectRatio);
     }
 }
 
@@ -122,7 +124,21 @@ void SceneEditorSample::onFrameRender()
         mpRenderer->update(mCurrentTime);
 
         const auto& pCamera = mCameraLiveViewMode ? mpScene->getActiveCamera() : mpEditor->getEditorCamera();
+
+        const float origAspectRatio = pCamera->getAspectRatio();
+        if (mOverrideCameraAspectRatio)
+        {
+            const float backBufferWidth = gpDevice->getSwapChainFbo()->getWidth();
+            const float backBufferHeight = gpDevice->getSwapChainFbo()->getHeight();
+            pCamera->setAspectRatio(backBufferWidth / backBufferHeight);
+        }
+
         mpRenderer->renderScene(mpRenderContext.get(), pCamera.get());
+
+        if (mOverrideCameraAspectRatio)
+        {
+            pCamera->setAspectRatio(origAspectRatio);
+        }
     }
 
     if (mpEditor && mCameraLiveViewMode == false)

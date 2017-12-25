@@ -49,6 +49,7 @@ private:
     void initShader();
 
     bool mCameraLiveViewMode = false;
+    bool mOverrideCameraAspectRatio = true;
 
     Scene::SharedPtr mpScene = nullptr;
     GraphicsProgram::SharedPtr mpProgram = nullptr;

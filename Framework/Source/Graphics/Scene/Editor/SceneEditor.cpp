@@ -117,7 +117,7 @@ namespace Falcor
         if (pGui->addTextBox(kModelNameStr, modelName, arraysize(modelName)))
         {
             mpScene->getModel(mSelectedModel)->setName(modelName);
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -128,7 +128,7 @@ namespace Falcor
         if (pGui->addCheckBox("Visible", visible))
         {
             instance->setVisible(visible);
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -138,7 +138,7 @@ namespace Falcor
         if (pGui->addFloatVar("Focal Length", focalLength, 0.0f, FLT_MAX, 0.5f))
         {
             mpScene->getActiveCamera()->setFocalLength(focalLength);
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -149,7 +149,7 @@ namespace Falcor
         {
             auto pCamera = mpScene->getActiveCamera();
             pCamera->setAspectRatio(aspectRatio);
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -163,7 +163,7 @@ namespace Falcor
             if (pGui->addFloatVar("Near Plane", nearPlane, 0, FLT_MAX, 0.1f) || (pGui->addFloatVar("Far Plane", farPlane, 0, FLT_MAX, 0.1f)))
             {
                 pCamera->setDepthRange(nearPlane, farPlane);
-                mSceneDirty = true;
+                setSceneAsDirty();
             }
             pGui->endGroup();
         }
@@ -181,7 +181,7 @@ namespace Falcor
                 if (pGui->addDropdown(kSelectedPathStr, pathList, activePath))
                 {
                     mSelectedPath = activePath;
-                    mSceneDirty = true;
+                    setSceneAsDirty();
                 }
             }
         }
@@ -207,7 +207,7 @@ namespace Falcor
         if (pGui->addDropdown(kActiveCameraStr, cameraList, camIndex))
         {
             mpScene->setActiveCamera(camIndex);
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -231,7 +231,7 @@ namespace Falcor
             mCameraNames.erase(oldName);
             mCameraNames.emplace(newName);
 
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -241,7 +241,7 @@ namespace Falcor
         if (pGui->addFloatVar("Camera Speed", speed, 0, FLT_MAX, 0.1f))
         {
             mpScene->setCameraSpeed(speed);
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -251,7 +251,7 @@ namespace Falcor
         if (pGui->addRgbColor("Ambient intensity", ambientIntensity))
         {
             mpScene->setAmbientIntensity(ambientIntensity);
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -262,7 +262,7 @@ namespace Falcor
         if (pGui->addFloat3Var("Translation", t, -FLT_MAX, FLT_MAX))
         {
             pInstance->setTranslation(t, true);
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -274,7 +274,7 @@ namespace Falcor
         {
             r = radians(r);
             setActiveInstanceRotationAngles(r);
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -285,7 +285,7 @@ namespace Falcor
         if (pGui->addFloat3Var("Scaling", s, 0, FLT_MAX))
         {
             pInstance->setScaling(s);
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -296,7 +296,7 @@ namespace Falcor
         if (pGui->addFloat3Var("Position", position, -FLT_MAX, FLT_MAX))
         {
             pCamera->setPosition(position);
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -307,7 +307,7 @@ namespace Falcor
         if (pGui->addFloat3Var("Target", target, -FLT_MAX, FLT_MAX))
         {
             pCamera->setTarget(target);
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -318,7 +318,7 @@ namespace Falcor
         if (pGui->addFloat3Var("Up", up, -FLT_MAX, FLT_MAX))
         {
             pCamera->setUpVector(up);
-            mSceneDirty = true;
+            setSceneAsDirty();
         }
     }
 
@@ -373,7 +373,7 @@ namespace Falcor
 
                 select(mpEditorScene->getModelInstance(mEditorLightModelID, mLightIDSceneToEditor[mSelectedLight]));
 
-                mSceneDirty = true;
+                setSceneAsDirty();
             }
         }
     }
@@ -398,7 +398,7 @@ namespace Falcor
                 pNewLight->setName(name);
                 mLightNames.insert(name);
 
-                mSceneDirty = true;
+                setSceneAsDirty();
             }
         }
     }
@@ -449,17 +449,27 @@ namespace Falcor
             return;
         }
 
-		{
+        if (mMitsubaSceneDirty)
+        {
             // export mitsuba scene file
             const auto backBufferFBO = gpDevice->getSwapChainFbo();
             const float backBufferWidth = backBufferFBO->getWidth();
             const float backBufferHeight = backBufferFBO->getHeight();
-			SceneMitsubaExporter::saveScene(mitsubaSceneFile, mpScene, backBufferWidth, backBufferHeight);
+            SceneMitsubaExporter::saveScene(mitsubaSceneFile, mpScene, backBufferWidth, backBufferHeight);
 
             // rendered by mitsuba
-		    std::string opts = "-o \"" + mitsubaRenderedFile + "\"";
+            std::string opts = "-o \"" + mitsubaRenderedFile + "\"";
             opts += " \"" + mitsubaSceneFile + "\"";
-		    Falcor::createProcess("mitsuba", opts, true);
+            Falcor::createProcess("mitsuba", opts, true);
+
+            mMitsubaSceneDirty = false;
+            mLastMitsubaSceneFile = mitsubaSceneFile;
+            mLastMitsubaRenderedFile = mitsubaRenderedFile;
+        }
+        else
+        {
+            mitsubaSceneFile = mLastMitsubaSceneFile;
+            mitsubaRenderedFile = mLastMitsubaRenderedFile;
         }
 
         // save screenshot
@@ -694,7 +704,7 @@ namespace Falcor
     {
         mInstanceRotationAngles[mSelectedModel][mSelectedModelInstance] = rotation;
         mpScene->getModelInstance(mSelectedModel, mSelectedModelInstance)->setRotation(rotation);
-        mSceneDirty = true;
+        setSceneAsDirty();
     }
 
     void SceneEditor::render(RenderContext* pContext)
@@ -890,7 +900,7 @@ namespace Falcor
             break;
         }
 
-        mSceneDirty = true;
+        setSceneAsDirty();
     }
 
     std::string SceneEditor::getUniqueNumberedName(const std::string& baseName, uint32_t idSuffix, const std::set<std::string>& nameMap) const
@@ -989,6 +999,8 @@ namespace Falcor
 
     void SceneEditor::onResizeSwapChain()
     {
+        mMitsubaSceneDirty = true;
+
         if (mpScenePicker)
         {
             auto backBufferFBO = gpDevice->getSwapChainFbo();
@@ -1017,6 +1029,12 @@ namespace Falcor
                 return;
             }
         }
+    }
+
+    void SceneEditor::setSceneAsDirty()
+    {
+        mSceneDirty = true;
+        mMitsubaSceneDirty = true;        
     }
 
     void SceneEditor::renderModelElements(Gui* pGui)
@@ -1417,7 +1435,7 @@ namespace Falcor
                     mInstanceRotationAngles.emplace_back();
                     mInstanceRotationAngles.back().push_back(mpScene->getModelInstance(mSelectedModel, mSelectedModelInstance)->getRotation());
                 }
-                mSceneDirty = true;
+                setSceneAsDirty();
             }
         }
     }
@@ -1439,7 +1457,7 @@ namespace Falcor
         mInstanceRotationAngles.erase(mInstanceRotationAngles.begin() + mSelectedModel);
         mSelectedModel = 0;
         mSelectedModelInstance = 0;
-        mSceneDirty = true;
+        setSceneAsDirty();
         deselect();
     }
 
@@ -1477,7 +1495,7 @@ namespace Falcor
                 mInstanceRotationAngles[mSelectedModel].push_back(pNewInstance->getRotation());
                 select(pNewInstance);
 
-                mSceneDirty = true;
+                setSceneAsDirty();
             }
         }
     }
@@ -1519,7 +1537,7 @@ namespace Falcor
                 deselect();
 
                 mSelectedModelInstance = 0;
-                mSceneDirty = true;
+                setSceneAsDirty();
             }
         }
     }
@@ -1548,7 +1566,7 @@ namespace Falcor
 
                 select(mpEditorScene->getModelInstance(mEditorCameraModelID, camIndex));
 
-                mSceneDirty = true;
+                setSceneAsDirty();
             }
         }
     }
@@ -1567,7 +1585,7 @@ namespace Falcor
                 updateEditorModelIDs();
                 deselect();
 
-                mSceneDirty = true;
+                setSceneAsDirty();
             }
         }
     }
@@ -1583,7 +1601,7 @@ namespace Falcor
                 mSelectedPath = mpScene->addPath(pPath);
 
                 startPathEditor();
-                mSceneDirty = true;
+                setSceneAsDirty();
             }
         }
     }
@@ -1607,7 +1625,7 @@ namespace Falcor
                     mSelectedPath = mpScene->getPathCount() - 1;
                 }
 
-                mSceneDirty = true;
+                setSceneAsDirty();
             }
         }
     }
@@ -1698,7 +1716,7 @@ namespace Falcor
             select(mpEditorScene->getModelInstance(mEditorKeyframeModelID, 0));
         }
 
-        mSceneDirty = true;
+        setSceneAsDirty();
     }
 
     void SceneEditor::startPathEditor(Gui* pGui)

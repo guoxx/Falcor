@@ -97,6 +97,12 @@ namespace Falcor
 
         bool mSceneDirty = false;
 
+        bool mMitsubaSceneDirty = true;
+        std::string mLastMitsubaSceneFile;
+        std::string mLastMitsubaRenderedFile;
+
+        void setSceneAsDirty();
+
         // Main GUI functions
         void renderModelElements(Gui* pGui);
         void renderCameraElements(Gui* pGui);

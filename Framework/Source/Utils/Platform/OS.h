@@ -266,5 +266,8 @@ namespace Falcor
     */
     uint32_t popcount(uint32_t a);
 
+    /** Launch an executable
+     */
+    uint32_t createProcess(const std::string& executable, const std::string& args, bool waitForProc);
     /*! @} */
 };

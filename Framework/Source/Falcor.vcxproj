@@ -1101,23 +1101,23 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugD3D12|x64'">
-    <OutDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\Lib\</OutDir>
-    <IntDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\$(ProjectName)\Lib\</OutDir>
+    <IntDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\$(ProjectName)\</IntDir>
     <CustomBuildAfterTargets>Clean</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugVK|x64'">
-    <OutDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\Lib\</OutDir>
-    <IntDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\$(ProjectName)\Lib\</OutDir>
+    <IntDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\$(ProjectName)\</IntDir>
     <CustomBuildAfterTargets>Clean</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D12|x64'">
-    <OutDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\Lib\</OutDir>
-    <IntDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\$(ProjectName)\Lib\</OutDir>
+    <IntDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\$(ProjectName)\</IntDir>
     <CustomBuildAfterTargets>Clean</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseVK|x64'">
-    <OutDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\Lib\</OutDir>
-    <IntDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\$(ProjectName)\Lib\</OutDir>
+    <IntDir>$(SolutionDir)Bin\Int\$(PlatformShortName)\$(Configuration)\$(ProjectName)\</IntDir>
     <CustomBuildAfterTargets>Clean</CustomBuildAfterTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugD3D12|x64'">

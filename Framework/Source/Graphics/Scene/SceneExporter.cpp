@@ -187,7 +187,7 @@ namespace Falcor
         const Model* pModel = pScene->getModel(modelID).get();
 
         // Export model properties
-        addString(jmodel, allocator, SceneKeys::kFilename, stripDataDirectories(pModel->getFilename()));
+        addString(jmodel, allocator, SceneKeys::kFilename, stripDataDirectories(pModel->getRelativeFilename()));
         addString(jmodel, allocator, SceneKeys::kName, pModel->getName());
 
         if (pScene->getModel(modelID)->hasAnimations())
@@ -541,7 +541,7 @@ namespace Falcor
     {
         if (pTexture)
         {
-            std::string filename = stripDataDirectories(pTexture->getSourceFilename());
+            std::string filename = stripDataDirectories(pTexture->getRelativeSourceFilename());
             addString(jsonVal, allocator, SceneKeys::kMaterialTexture, filename);
         }
     }
@@ -552,7 +552,7 @@ namespace Falcor
 
         if (layer.pTexture != nullptr)
         {
-            addString(jsonVal, allocator, SceneKeys::kMaterialTexture, stripDataDirectories(layer.pTexture->getSourceFilename()));
+            addString(jsonVal, allocator, SceneKeys::kMaterialTexture, stripDataDirectories(layer.pTexture->getRelativeSourceFilename()));
         }
 
         addString(jsonVal, allocator, SceneKeys::kMaterialLayerType, getMaterialLayerType((uint32_t)layer.type));
@@ -579,28 +579,28 @@ namespace Falcor
         auto pAlphaMap = pMaterial->getAlphaMap();
         if (pAlphaMap != nullptr)
         {
-            addString(jsonMaterial, allocator, SceneKeys::kMaterialAlpha, stripDataDirectories(pAlphaMap->getSourceFilename()));
+            addString(jsonMaterial, allocator, SceneKeys::kMaterialAlpha, stripDataDirectories(pAlphaMap->getRelativeSourceFilename()));
         }
 
         // Normal
         auto pNormalMap = pMaterial->getNormalMap();
         if (pNormalMap != nullptr)
         {
-            addString(jsonMaterial, allocator, SceneKeys::kMaterialNormal, stripDataDirectories(pNormalMap->getSourceFilename()));
+            addString(jsonMaterial, allocator, SceneKeys::kMaterialNormal, stripDataDirectories(pNormalMap->getRelativeSourceFilename()));
         }
 
         // Height
         auto pHeightMap = pMaterial->getHeightMap();
         if (pHeightMap != nullptr)
         {
-            addString(jsonMaterial, allocator, SceneKeys::kMaterialHeight, stripDataDirectories(pHeightMap->getSourceFilename()));
+            addString(jsonMaterial, allocator, SceneKeys::kMaterialHeight, stripDataDirectories(pHeightMap->getRelativeSourceFilename()));
         }
 
         // Ambient Occlusion
         auto pAOMap = pMaterial->getAmbientOcclusionMap();
         if (pAOMap != nullptr)
         {
-            addString(jsonMaterial, allocator, SceneKeys::kMaterialAO, stripDataDirectories(pAOMap->getSourceFilename()));
+            addString(jsonMaterial, allocator, SceneKeys::kMaterialAO, stripDataDirectories(pAOMap->getRelativeSourceFilename()));
         }
 
         // Loop over the layers

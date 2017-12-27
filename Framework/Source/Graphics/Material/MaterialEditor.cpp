@@ -392,7 +392,7 @@ namespace Falcor
 
     Texture::SharedPtr MaterialEditor::changeTexture(Gui* pGui, const std::string& label, const Texture::SharedPtr& pCurrentTexture, bool useSRGB)
     {
-        std::string texPath(pCurrentTexture ? pCurrentTexture->getSourceFilename() : "");
+        std::string texPath(pCurrentTexture ? pCurrentTexture->getRelativeSourceFilename() : "");
 
         char texPathBuff[1024];
         std::strcpy(texPathBuff, texPath.c_str());

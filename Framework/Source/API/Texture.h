@@ -170,13 +170,21 @@ namespace Falcor
         */
         const std::string& getName() const { return mName; }
 
-        /** In case the texture was loaded from a file, use this to set the filename
+        /** In case the texture was loaded from a file, use this to set the relative filename
         */
-        void setSourceFilename(const std::string& filename) { mSourceFilename = filename; }
+        void setRelativeSourceFilename(const std::string& filename) { mRelativeSourceFilename = canonicalizeFilename(filename); }
 
-        /** In case the texture was loaded from a file, get the source filename
+        /** In case the texture was loaded from a file, get the relative source filename
         */
-        const std::string& getSourceFilename() const { return mSourceFilename; }
+        const std::string& getRelativeSourceFilename() const { return mRelativeSourceFilename; }
+
+        /** In case the texture was loaded from a file, use this to set the absolute filename
+        */
+        void setAbsoluteSourceFilename(const std::string& filename) { mAbsoluteSourceFilename = canonicalizeFilename(filename); }
+
+        /** In case the texture was loaded from a file, get the absolute source filename
+        */
+        const std::string& getAbsoluteSourceFilename() const { return mAbsoluteSourceFilename; }
 
         void copySubresource(const Texture* pDst, uint32_t srcMipLevel, uint32_t srcArraySlice, uint32_t dstMipLevel, uint32_t dstArraySlice) const;
 
@@ -200,7 +208,8 @@ namespace Falcor
         static uint32_t tempDefaultUint;
 
         std::string mName;
-        std::string mSourceFilename;
+        std::string mRelativeSourceFilename;
+        std::string mAbsoluteSourceFilename;
 
         Texture(uint32_t width, uint32_t height, uint32_t depth, uint32_t arraySize, uint32_t mipLevels, uint32_t sampleCount, ResourceFormat format, Type Type, BindFlags bindFlags);
 

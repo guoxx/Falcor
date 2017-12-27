@@ -81,7 +81,8 @@ namespace Falcor
         }
 
         mName = other.mName + "_copy";
-        mFilename = other.mFilename;
+        mRelativeFilename = other.mRelativeFilename;
+        mAbsoluteFilename = other.mAbsoluteFilename;
     }
 
     Model::~Model() = default;
@@ -102,7 +103,11 @@ namespace Falcor
         if(res)
         {
             pModel->calculateModelProperties();
-            pModel->setFilename(filename);
+            pModel->setRelativeFilename(filename);
+
+            std::string fullpath;
+            findFileInDataDirectories(filename, fullpath);
+            pModel->setAbsoluteFilename(fullpath);
 
             std::string name = getFilenameFromPath(filename);
             size_t extPos = name.find_last_of('.');

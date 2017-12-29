@@ -221,7 +221,7 @@ namespace Falcor
 
         /** Set the model's filename relative to data directory
         */
-        void setRelativeFilename(const std::string& filename) { mRelativeFilename = canonicalizeFilename(filename); }
+        void setRelativeFilename(const std::string& filename) { mRelativeFilename = filename; }
 
         /** Get the model's filename relative to data directory
         */

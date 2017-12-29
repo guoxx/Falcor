@@ -172,7 +172,7 @@ namespace Falcor
 
         /** In case the texture was loaded from a file, use this to set the relative filename
         */
-        void setRelativeSourceFilename(const std::string& filename) { mRelativeSourceFilename = canonicalizeFilename(filename); }
+        void setRelativeSourceFilename(const std::string& filename) { mRelativeSourceFilename = filename; }
 
         /** In case the texture was loaded from a file, get the relative source filename
         */

@@ -108,9 +108,9 @@ namespace Falcor
 
         /* UI callbacks for keeping the intensity in-sync */
         glm::vec3 getColorForUI();
-        void setColorFromUI(const glm::vec3& uiColor);
+        virtual void setColorFromUI(const glm::vec3& uiColor);
         float getIntensityForUI();
-        void setIntensityFromUI(float intensity);
+        virtual void setIntensityFromUI(float intensity);
 
         std::string mName;
 

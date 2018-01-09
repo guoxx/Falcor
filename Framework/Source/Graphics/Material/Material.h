@@ -202,18 +202,18 @@ namespace Falcor
             \param[in] layerId Material layer index
             \param[in] albedo RGBA color
         */
-        void setLayerAlbedo(uint32_t layerId, const glm::vec4& albedo) { mData.values.layers[layerId].albedo = albedo; }
+        void setLayerAlbedo(uint32_t layerId, const glm::vec4& albedo) { mData.values.layers[layerId].albedo = albedo; mDescDirty = true; }
 
         /** Set a layer's roughness
             \param[in] layerId Material layer index
         */
-        void setLayerRoughness(uint32_t layerId, const glm::vec4& roughness) { mData.values.layers[layerId].roughness = roughness; }
+        void setLayerRoughness(uint32_t layerId, const glm::vec4& roughness) { mData.values.layers[layerId].roughness = roughness; mDescDirty = true; }
 
         /** Set extra parameters on a layer interpreted based on layer type (IoR, etc.)
             \param[in] layerId Material layer index
             \param[in] data Extra parameter data
         */
-        void setLayerUserParam(uint32_t layerId, const glm::vec4& data) { mData.values.layers[layerId].extraParam = data; }
+        void setLayerUserParam(uint32_t layerId, const glm::vec4& data) { mData.values.layers[layerId].extraParam = data; mDescDirty = true; }
 
         /** Set a layer's texture
             \param[in] layerId Material layer index

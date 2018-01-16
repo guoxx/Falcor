@@ -120,6 +120,17 @@ namespace Falcor
         return std::string(curDir);
     }
 
+    const std::string getTempDirectory()
+    {
+        std::string directory = getExecutableDirectory();
+        directory += "/Temp";
+        if (!isDirectoryExists(directory))
+        {
+            createDirectory(directory);
+        }
+        return directory;
+    }
+
     const std::string& getExecutableName()
     {
         static std::string filename;

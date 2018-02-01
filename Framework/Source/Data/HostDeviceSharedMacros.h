@@ -86,6 +86,8 @@
 #define LightDirectional     1    ///< Directional light source
 #define LightArea            2    ///< Area light source, potentially with arbitrary geometry
 //#define LightVolume        3    ///< Volumetric light source
+#define LightSphere          4    ///< Sphere shaped area light source
+#define LightPolygonal       5    ///< Polygonal area light source
 
 #define MAX_LIGHT_SOURCES 16
 

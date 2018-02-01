@@ -236,6 +236,10 @@ struct LightData
     // Keep that last
     MaterialData    material;                                     ///< Emissive material of the geometry mesh
     */
+
+    float           radius;
+    float3          dummy;
+    float4          vertices[4]             DEFAULTS({float4(0)});
 };
 
 /*******************************************************************

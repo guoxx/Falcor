@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="DDGI.cpp" />
+    <ClCompile Include="HybridRenderer.cpp" />
+    <ClCompile Include="OctahedralMapping.cpp" />
+    <ClCompile Include="LightFieldProbeRayTracing.cpp" />
+    <ClCompile Include="DownscalePass.cpp" />
+    <ClCompile Include="LightFieldProbeVolume.cpp" />
+    <ClCompile Include="LightFieldProbeShading.cpp" />
+    <ClCompile Include="SVGFPass.cpp" />
+    <ClCompile Include="LightFieldProbeFiltering.cpp" />
+    <ClCompile Include="IndirectLighting.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Data">
+      <UniqueIdentifier>{568100f5-73ac-45da-8bf6-1f1b37c395e5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="HybridRenderer.h" />
+    <ClInclude Include="OctahedralMapping.h" />
+    <ClInclude Include="LightFieldProbeRayTracing.h" />
+    <ClInclude Include="DownscalePass.h" />
+    <ClInclude Include="LightFieldProbeVolume.h" />
+    <ClInclude Include="LightFieldProbeShading.h" />
+    <ClInclude Include="SVGFPass.h" />
+    <ClInclude Include="Data\SVGFUtils.slang">
+      <Filter>Data</Filter>
+    </ClInclude>
+    <ClInclude Include="LightFieldProbeFiltering.h" />
+    <ClInclude Include="IndirectLighting.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\OctahedralMapping.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\LightFieldProbeViewer.ps.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\LightFieldProbeRayTracing.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\LightFieldProbe.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\DownscalePass.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\LightFieldProbeShading.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\SVGF_Atrous.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\SVGF_Reprojection.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\SVGF_VarianceEstimation.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\LightFieldProbeFiltering.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\IndirectLighting.slang">
+      <Filter>Data</Filter>
+    </None>
+  </ItemGroup>
+</Project>

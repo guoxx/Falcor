@@ -31,7 +31,7 @@
 
 namespace
 {
-    const char kFileRasterPrimary[] = "RasterPrimary.slang";
+    const char kFileRasterPrimary[] = "RenderPasses\\GBufferRaster.slang";
 }
 
 RenderPassReflection GBufferRaster::reflect() const
@@ -67,6 +67,28 @@ GBufferRaster::SharedPtr GBufferRaster::create(const Dictionary& dict)
     return pPass->parseDictionary(dict) ? pPass : nullptr;
 }
 
+GBufferRaster::SharedPtr GBufferRaster::create(RasterizerState::CullMode cullMode)
+{
+    SharedPtr pPass = SharedPtr(new GBufferRaster);
+    pPass->setCullMode(cullMode);
+    return pPass;
+}
+
+Fbo::SharedPtr GBufferRaster::createGBufferFbo(int32_t w, int32_t h, bool hasDepthStencil)
+{
+    Fbo::Desc desc;
+    RenderPassReflection r;
+    for (int i = 0; i < kGBufferChannelDesc.size(); ++i)
+    {
+        desc.setColorTarget(i, ResourceFormat::RGBA32Float);
+    }
+    if (hasDepthStencil)
+    {
+        desc.setDepthStencilTarget(ResourceFormat::D32Float);
+    }
+    return FboHelper::create2D(w, h, desc);
+}
+
 Dictionary GBufferRaster::getScriptingDictionary() const
 {
     Dictionary dict;
@@ -76,8 +98,6 @@ Dictionary GBufferRaster::getScriptingDictionary() const
 
 GBufferRaster::GBufferRaster() : RenderPass("GBufferRaster")
 {
-    mpGraphicsState = GraphicsState::create();
-
     mRaster.pProgram = GraphicsProgram::createFromFile(kFileRasterPrimary, "", "ps");
 
     // Initialize graphics state
@@ -88,15 +108,13 @@ GBufferRaster::GBufferRaster() : RenderPass("GBufferRaster")
 
     mRaster.pVars = GraphicsVars::create(mRaster.pProgram->getReflector());
     mRaster.pState->setProgram(mRaster.pProgram);
-
-    mpFbo = Fbo::create();
 }
 
 void GBufferRaster::onResize(uint32_t width, uint32_t height)
 {
 }
 
-void GBufferRaster::setScene(const std::shared_ptr<Scene>& pScene)
+void GBufferRaster::setScene(const Scene::SharedPtr& pScene)
 {
     mpSceneRenderer = (pScene == nullptr) ? nullptr : SceneRenderer::create(pScene);
 }
@@ -113,13 +131,17 @@ void GBufferRaster::renderUI(Gui* pGui, const char* uiGroup)
 void GBufferRaster::setCullMode(RasterizerState::CullMode mode)
 {
     mCullMode = mode;
+
     RasterizerState::Desc rsDesc;
     rsDesc.setCullMode(mCullMode);
     mRaster.pState->setRasterizerState(RasterizerState::create(rsDesc));
+
+    DepthStencilState::Desc dsDesc;
+    dsDesc.setDepthFunc(DepthStencilState::Func::LessEqual);
+    mRaster.pState->setDepthStencilState(DepthStencilState::create(dsDesc));
 }
 
-
-void GBufferRaster::execute(RenderContext* pContext, const RenderData* pRenderData)
+void GBufferRaster::execute(RenderContext* pContext, Fbo::SharedPtr pGBufferFbo, Camera::SharedConstPtr pCamera)
 {
     if (mpSceneRenderer == nullptr)
     {
@@ -127,17 +149,29 @@ void GBufferRaster::execute(RenderContext* pContext, const RenderData* pRenderDa
         return;
     }
 
-    mpFbo->attachDepthStencilTarget(pRenderData->getTexture("depthStencil"));
+    mRaster.pVars["PerFrameCB"]["gRenderTargetDim"] = vec2(pGBufferFbo->getWidth(), pGBufferFbo->getHeight());
 
+    mRaster.pState->pushFbo(pGBufferFbo);
+
+    pContext->pushGraphicsState(mRaster.pState);
+    pContext->pushGraphicsVars(mRaster.pVars);
+    const Camera* pValidCamera = pCamera ? pCamera.get() : mpSceneRenderer->getScene()->getActiveCamera().get();
+    mpSceneRenderer->renderScene(pContext, pValidCamera);
+    pContext->popGraphicsVars();
+    pContext->popGraphicsState();
+
+    mRaster.pState->popFbo();    
+}
+
+void GBufferRaster::execute(RenderContext* pContext, const RenderData* pRenderData)
+{
+    Fbo::SharedPtr pFbo = Fbo::create();
+    pFbo->attachDepthStencilTarget(pRenderData->getTexture("depthStencil"));
     for (int i = 0; i < kGBufferChannelDesc.size(); ++i)
     {
-        mpFbo->attachColorTarget(pRenderData->getTexture(kGBufferChannelDesc[i].name), i);
+        pFbo->attachColorTarget(pRenderData->getTexture(kGBufferChannelDesc[i].name), i);
     }
 
-    pContext->clearFbo(mpFbo.get(), vec4(0), 1.f, 0, FboAttachmentType::All);
-    mRaster.pState->setFbo(mpFbo);
-
-    pContext->setGraphicsState(mRaster.pState);
-    pContext->setGraphicsVars(mRaster.pVars);
-    mpSceneRenderer->renderScene(pContext);
+    pContext->clearFbo(pFbo.get(), vec4(0), 1.f, 0, FboAttachmentType::All);
+    execute(pContext, pFbo, nullptr);
 }

@@ -26,8 +26,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************/
 #pragma once
+#include "Graphics/FullScreenPass.h"
+#include "Graphics/Program/ProgramVars.h"
 #include "Experimental/RenderGraph/RenderPass.h"
 #include "API/Sampler.h"
+#include "API/Texture.h"
 
 namespace Falcor
 {
@@ -41,6 +44,8 @@ namespace Falcor
         */
         static SharedPtr create(const Dictionary& dict = {});
 
+        void execute(RenderContext* pContext, Texture::SharedPtr pSrcTex, Texture::SharedPtr pDstTex);
+
         virtual RenderPassReflection reflect() const override;
         virtual void execute(RenderContext* pContext, const RenderData* pRenderData) override;
         virtual void renderUI(Gui* pGui, const char* uiGroup) override;
@@ -48,8 +53,35 @@ namespace Falcor
         virtual std::string getDesc() override { return kDesc; }
 
         void setFilter(Sampler::Filter filter) { mFilter = filter; }
+
+        void setBlendParams(uint32_t rtIndex,
+                            BlendState::BlendOp rgbOp, BlendState::BlendOp alphaOp,
+                            BlendState::BlendFunc srcRgbFunc, BlendState::BlendFunc dstRgbFunc,
+                            BlendState::BlendFunc srcAlphaFunc, BlendState::BlendFunc dstAlphaFunc);
+        void setEnableBlend(uint32_t rtIndex, bool enable);
+
     private:
         BlitPass();
+        void init();
+
         Sampler::Filter mFilter = Sampler::Filter::Linear;
+        BlendState::Desc mBlendStateDesc;
+        BlendState::SharedPtr mpBlendState;
+
+        FullScreenPass::UniquePtr mpPass;
+        GraphicsVars::SharedPtr mpVars;
+        GraphicsState::SharedPtr mpState;
+
+        Sampler::SharedPtr mpLinearSampler;
+        Sampler::SharedPtr mpPointSampler;
+
+        ConstantBuffer::SharedPtr mpSrcRectBuffer;
+
+        // Variable offsets in constant buffer
+        size_t mOffsetVarOffset = ConstantBuffer::kInvalidOffset;
+        size_t mScaleVarOffset = ConstantBuffer::kInvalidOffset;;
+
+        ProgramReflection::BindLocation mTexBindLoc;
+        ProgramReflection::BindLocation mSamplerBindLoc;
     };
 }

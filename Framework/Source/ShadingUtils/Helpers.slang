@@ -122,7 +122,7 @@ float3 getGGXMicrofacet(float2 u, float3 N, float roughness)
     float a2 = roughness * roughness;
 
     float phi = M_PI2 * u.x;
-    float cosTheta = sqrt(max(0, (1 - u.y)) / (1 + (a2 * a2 - 1) * u.y));
+    float cosTheta = sqrt(max(0, (1 - u.y)) / (1 + (a2 - 1) * u.y));
     float sinTheta = sqrt(max(0, 1 - cosTheta * cosTheta));
 
     // Tangent space H
@@ -345,4 +345,146 @@ float rand_next(inout uint s)
     s = (LCG_A * s + LCG_C);
     return float(s & 0x00FFFFFF) / float(0x01000000);
 }
+
+/*******************************************************************
+   	3D Math
+*******************************************************************/  
+float depthToLinearZ(float depth, float4x4 mProj)
+{
+    /*
+        mProj = [[m11,   0,   0,   0],
+                 [  0, m22,   0,   0],
+                 [  0,   0, m22, m23],
+                 [  0,   0, m32,   0]]
+        m23 is -1 for right hand coordinate, 1 for left hand
+
+        depth = (m22 * z + m32) / (m23 * z)
+        depth * m23 = m22 + m32 / z
+        z = m32 / (depth * m23 - m22)
+    */
+
+    float m22 = mProj[2][2];
+    float m23 = mProj[2][3];
+    float m32 = mProj[3][2];
+    float z = m32 / (depth * m23 - m22);
+    return z;
+}
+
+float4 reconstructPositionFromDepth(float depthVal, float2 uv, float4x4 mInvProj)
+{
+    float4 tmp;
+    tmp.x = uv.x * 2.0f - 1.0f;
+    tmp.y = (1.0f - uv.y) * 2.0f - 1.0f;
+#ifdef FALCOR_VK
+    // NDC space is inverted
+    tmp.y = -pos.y;
+#endif
+    tmp.z = depthVal;
+    tmp.w = 1.0f;
+
+    float4 pos = mul(tmp, mInvProj);
+    pos /= pos.w;
+
+    return pos;
+}
+
+float4 reconstructPositionFromDepth(Texture2D depthTex, SamplerState texSampler, float2 uv, float4x4 mInvProj)
+{
+    float z = depthTex.SampleLevel(texSampler, uv, 0).r;
+    return reconstructPositionFromDepth(z, uv, mInvProj);
+}
+
+// Assume P0 is within the rect (P1 - P0 is never zero when clipping)
+// Result can be used as lerp(P0, P1, alpha)
+float clipLineByRect(float2 P0, float2 P1, float4 rect)
+{
+    float xMin = rect.x, yMin = rect.y, xMax = rect.z, yMax = rect.w;
+    float alpha = 0.0;
+
+    // Assume P0 is in the viewport (P1 - P0 is never zero when clipping)
+    if ((P1.y > yMax) || (P1.y < yMin))
+        alpha = (P1.y - ((P1.y > yMax) ? yMax : yMin)) / (P1.y - P0.y);
+
+    if ((P1.x > xMax) || (P1.x < xMin))
+        alpha = max(alpha, (P1.x - ((P1.x > xMax) ? xMax : xMin)) / (P1.x - P0.x));
+
+    return 1 - alpha;
+}
+
+float signNotZero(float value)
+{
+    return value >= 0.0 ? 1.0 : -1.0;
+}
+
+float2 signNotZero(float2 value)
+{
+    return float2(signNotZero(value.x), signNotZero(value.y));
+}
+
+float2 UvToNdc(float2 uv)
+{
+    return uv * float2(2, -2) + float2(-1, 1);
+}
+
+float2 NdcToUv(float2 ndc)
+{
+    return ndc * float2(0.5, -0.5) + float2(0.5, 0.5);
+}
+
+float2 UvToOct(in float2 uv)
+{
+    return uv * 2 - 1;
+}
+
+float2 OctToUv(in float2 o)
+{
+    return o * 0.5 + 0.5;
+}
+
+/** Assumes that v is a unit vector. The result is an octahedral vector on the [-1, +1] square. */
+float2 octEncode(in float3 v) {
+    float l1norm = abs(v.x) + abs(v.y) + abs(v.z);
+    float2 result = v.xy * (1.0 / l1norm);
+    if (v.z < 0.0) {
+        result = (1.0 - abs(result.yx)) * signNotZero(result.xy);
+    }
+    return result;
+}
+
+/** Returns a unit vector. Argument o is an octahedral vector packed via octEncode,
+    on the [-1, +1] square*/
+float3 octDecode(float2 o) {
+    float3 v = float3(o.x, o.y, 1.0 - abs(o.x) - abs(o.y));
+    if (v.z < 0.0) {
+        v.xy = (1.0 - abs(v.yx)) * signNotZero(v.xy);
+    }
+    return normalize(v);
+}
+
+float2 encodeUnitVector(float3 v)
+{
+    return octEncode(v) * 0.5 + 0.5;
+}
+
+float3 decodeUnitVector(float2 d)
+{
+    return octDecode(d * 2 - 1);
+}
+
+float3 OctToDir(uint octo)
+{
+    float2 e = float2(f16tof32(octo & 0xFFFF), f16tof32((octo >> 16) & 0xFFFF));
+    float3 v = float3(e, 1.0 - abs(e.x) - abs(e.y));
+    if (v.z < 0.0)
+        v.xy = (1.0 - abs(v.yx)) * (step(0.0, v.xy) * 2.0 - (float2)(1.0));
+    return normalize(v);
+}
+
+uint DirToOct(float3 normal)
+{
+    float2 p = normal.xy * (1.0 / dot(abs(normal), 1.0.xxx));
+    float2 e = normal.z > 0.0 ? p : (1.0 - abs(p.yx)) * (step(0.0, p) * 2.0 - (float2)(1.0));
+    return (asuint(f32tof16(e.y)) << 16) + (asuint(f32tof16(e.x)));
+}
+
 #endif //_FALCOR_HELPERS_SLANG_

@@ -27,7 +27,7 @@
 ***************************************************************************/
 #include "PathTracer.h"
 #include "RenderPasses/GGXGlobalIllumination.h"
-#include "RenderPasses/GBufferRaster.h"
+#include "Experimental/RenderPasses/GBufferRaster.h"
 #include "RenderPasses/TemporalAccumulation.h"
 
 void PathTracer::onGuiRender(SampleCallbacks* pCallbacks, Gui* pGui)
@@ -89,12 +89,12 @@ void PathTracer::onLoad(SampleCallbacks* pCallbacks, RenderContext* pRenderConte
     mpGraph->addPass(TemporalAccumulation::create(), "TemporalAccumulation");
     mpGraph->addPass(ToneMapping::create(), "ToneMapping");
 
-    mpGraph->addEdge("GBuffer.posW", "GlobalIllumination.posW");
-    mpGraph->addEdge("GBuffer.normW", "GlobalIllumination.normW");
-    mpGraph->addEdge("GBuffer.diffuseOpacity", "GlobalIllumination.diffuseOpacity");
-    mpGraph->addEdge("GBuffer.specRough", "GlobalIllumination.specRough");
-    mpGraph->addEdge("GBuffer.emissive", "GlobalIllumination.emissive");
-    mpGraph->addEdge("GBuffer.matlExtra", "GlobalIllumination.matlExtra");
+    mpGraph->addEdge("GBuffer.rt0", "GlobalIllumination.rt0");
+    mpGraph->addEdge("GBuffer.rt1", "GlobalIllumination.rt1");
+    mpGraph->addEdge("GBuffer.rt2", "GlobalIllumination.rt2");
+    mpGraph->addEdge("GBuffer.rt3", "GlobalIllumination.rt3");
+    mpGraph->addEdge("GBuffer.rt4", "GlobalIllumination.rt4");
+    mpGraph->addEdge("GBuffer.depthStencil", "GlobalIllumination.depthStencil");
 
     mpGraph->addEdge("GlobalIllumination.output", "TemporalAccumulation.input");
 
@@ -177,6 +177,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 {
     PathTracer::UniquePtr pRenderer = std::make_unique<PathTracer>();
     SampleConfig config;
+    config.windowDesc.width = 1600;
+    config.windowDesc.height = 900;
     config.windowDesc.title = "Path Tracer";
     config.windowDesc.resizableWindow = true;
     config.freezeTimeOnStartup = true;

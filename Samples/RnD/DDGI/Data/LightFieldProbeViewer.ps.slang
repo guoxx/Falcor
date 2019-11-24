@@ -25,37 +25,30 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************/
-import Shading;
-import DefaultVS;
+__import DefaultVS;
+__import Helpers;
+__import Shading;
+__import LightFieldProbe;
 
-struct GBufferOut
+cbuffer PerInstanceData
 {
-    float4 posW             : SV_TARGET0;
-    float4 normW            : SV_TARGET1;
-    float4 bitangentW       : SV_TARGET2;
-    float4 texC             : SV_TARGET3;
-    float4 diffuseOpacity   : SV_TARGET4;
-    float4 specRough        : SV_TARGET5;
-    float4 emissive         : SV_TARGET6;
-    float4 matlExtra        : SV_TARGET7;
-};
+    int3 gProbeCounts;
+    int gProbeIdx;
+}
 
-/** Entry point for G-buffer rasterization pixel shader.
-*/
-GBufferOut ps(VertexOut vsOut)
+Texture2DArray gColorTex;
+SamplerState gSampler;
+
+float4 main(VertexOut vOut) : SV_TARGET
 {
-    ShadingData sd = prepareShadingData(vsOut, gMaterial, gCamera.posW);
+    ShadingData sd = prepareShadingData(vOut, gMaterial, gCamera.posW);
 
-    GBufferOut gOut;
-    gOut.posW           = float4(sd.posW, 1.f);
-    gOut.normW          = float4(sd.N, 0.f);
-    gOut.bitangentW     = float4(sd.B, 0.f);
-    gOut.texC           = float4(sd.uv, 0.f, 0.f);
-
-    gOut.diffuseOpacity = float4(sd.diffuse, sd.opacity);
-    gOut.specRough      = float4(sd.specular, sd.linearRoughness);
-    gOut.emissive       = float4(sd.emissive, 0.f);
-    gOut.matlExtra      = float4(normalize(vsOut.normalW), 0.f);
-
-    return gOut;
+#if defined(_PROBE_COLOR)
+    return float4(probeIndexToColor(gProbeCounts, gProbeIdx), 0);
+#else
+    float3 dir = sd.N;
+    float2 uv = OctToUv(octEncode(dir));
+//    float2 uv = dirToSphericalCrd(dir);
+    return gColorTex.SampleLevel(gSampler, float3(uv, gProbeIdx), 0);
+#endif
 }

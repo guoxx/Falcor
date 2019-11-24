@@ -28,34 +28,50 @@
 #pragma once
 #include "Falcor.h"
 
-// GBuffer channel metadata
-struct GBufferChannelDesc
+using namespace Falcor;
+
+class LightFieldProbeShading : public RenderPass, inherit_shared_from_this<RenderPass, LightFieldProbeShading>
 {
-    const char*   name;     // Canonical channel name
-    const char*   desc;     // Human-readable channel description
-    const char*   texname;  // Name of corresponding ITexture2D in GBufferRT shader code
+public:
+    using SharedPtr = std::shared_ptr<LightFieldProbeShading>;
+
+    static SharedPtr create(const Dictionary& dict = {});
+
+    void setCamera(Camera::SharedConstPtr pCamera) { mpCamera = pCamera; }
+
+    void execute(RenderContext* pContext, const Fbo::SharedPtr& pGBufferFbo, Texture::SharedPtr visibilityTexture, const Fbo::SharedPtr& pTargetFbo);
+
+    RenderPassReflection reflect() const override;
+    void execute(RenderContext* pContext, const RenderData* pRenderData) override;
+    void renderUI(Gui* pGui, const char* uiGroup) override;
+    Dictionary getScriptingDictionary() const override;
+    void onResize(uint32_t width, uint32_t height) override;
+    void setScene(const Scene::SharedPtr& pScene) override;
+    std::string getDesc(void) override { return "Light field probe shading"; }
+private:
+    LightFieldProbeShading();
+    bool parseDictionary(const Dictionary& dict);
+
+    void setVarsData(const Fbo::SharedPtr& pGBufferFbo, Texture::SharedPtr visibilityTexture);
+
+    Camera::SharedConstPtr mpCamera;
+    Scene::SharedConstPtr mpScene;
+    ConstantBuffer::SharedPtr mpInternalPerFrameCB;
+    struct
+    {
+        int32_t cameraDataOffset;
+        int32_t lightArrayOffset;
+        int32_t lightCountOffset;
+    } mOffsetInCB;
+
+    struct
+    {
+        ProgramReflection::BindLocation gbufferRT;
+        ProgramReflection::BindLocation depthTex;
+        ProgramReflection::BindLocation visibilityBuffer;
+    } mBindLocations;
+
+    GraphicsState::SharedPtr mpState;
+    GraphicsProgram::SharedPtr mpProgram;
+    GraphicsVars::SharedPtr mpVars;
 };
-
-// Note that channel order should correspond to SV_TARGET index order used in
-// GBufferRaster's primary fragment shader.
-static const std::vector<GBufferChannelDesc> kGBufferChannelDesc({
-        {"posW",            "world space position",         "gPosW"             },
-        {"normW",           "world space normal",           "gNormW"            },
-        {"bitangentW",      "world space bitangent",        "gBitangentW"       },
-        {"texC",            "texture coordinates",          "gTexC"             },
-        {"diffuseOpacity",  "diffuse color and opacity",    "gDiffuseOpacity"   },
-        {"specRough",       "specular color and roughness", "gSpecRough"        },
-        {"emissive",        "emissive color",               "gEmissive"         },
-        {"matlExtra",       "additional material data",     "gMatlExtra"        }
-        });
-
-// Culling dictionary key and dropdown mode selection
-static const std::string kCull = "cull";
-
-static const Falcor::Gui::DropdownList kCullModeList =
-{
-    { (uint32_t)Falcor::RasterizerState::CullMode::None, "None" },
-    { (uint32_t)Falcor::RasterizerState::CullMode::Back, "Back" },
-    { (uint32_t)Falcor::RasterizerState::CullMode::Front, "Front" },
-};
-

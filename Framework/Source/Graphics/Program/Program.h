@@ -172,6 +172,14 @@ namespace Falcor
             /** Set the compiler flags. Replaces any previously set flags.
             */
             Desc& setCompilerFlags(Shader::CompilerFlags flags) { mShaderFlags = flags; return *this; }
+
+            /** Get the optimization level.
+            */
+            Shader::OptimizationLevel getOptimizationLevel() const { return mOptimizationLevel; }
+
+            /** Set the optimization level.
+            */
+            Desc& setOptimizationLevel(Shader::OptimizationLevel lv) { mOptimizationLevel = lv; return *this; }
         private:
             friend class Program;
             friend class GraphicsProgram;
@@ -205,7 +213,12 @@ namespace Falcor
             std::vector<Source> mSources;
             EntryPoint mEntryPoints[kShaderCount];
             uint32_t mActiveSource = -1;
+#ifdef _DEBUG
+            Shader::CompilerFlags mShaderFlags = Shader::CompilerFlags::EmitDebugInfo;
+#else
             Shader::CompilerFlags mShaderFlags = Shader::CompilerFlags::None;
+#endif
+            Shader::OptimizationLevel mOptimizationLevel = Shader::OptimizationLevel::Default;
 #ifdef FALCOR_VK
             std::string mShaderModel = "450";
 #elif defined FALCOR_D3D12

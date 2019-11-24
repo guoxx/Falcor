@@ -319,6 +319,8 @@
     <ClCompile Include="Effects\ParticleSystem\ParticleSystem.cpp" />
     <ClCompile Include="Effects\Shadows\CSM.cpp" />
     <ClCompile Include="Effects\SkyBox\SkyBox.cpp" />
+    <ClCompile Include="Effects\SSR\HZB.cpp" />
+    <ClCompile Include="Effects\SSR\SSR.cpp" />
     <ClCompile Include="Effects\TAA\TAA.cpp" />
     <ClCompile Include="Effects\ToneMapping\ToneMapping.cpp" />
     <ClCompile Include="Effects\Utils\GaussianBlur.cpp" />
@@ -378,6 +380,8 @@
     <ClCompile Include="Experimental\RenderPasses\BlitPass.cpp" />
     <ClCompile Include="Experimental\RenderPasses\DepthPass.cpp" />
     <ClCompile Include="Experimental\RenderPasses\ForwardLightingPass.cpp" />
+    <ClCompile Include="Experimental\RenderPasses\GBufferLightingPass.cpp" />
+    <ClCompile Include="Experimental\RenderPasses\GBufferRaster.cpp" />
     <ClCompile Include="Experimental\RenderPasses\ImageLoader.cpp" />
     <ClCompile Include="Experimental\RenderPasses\ResolvePass.cpp" />
     <ClCompile Include="Graphics\Camera\Camera.cpp" />
@@ -419,9 +423,11 @@
     </ClCompile>
     <ClCompile Include="Graphics\Scene\Editor\SceneEditor.cpp" />
     <ClCompile Include="Graphics\Scene\Editor\SceneEditorRenderer.cpp" />
+    <ClCompile Include="Graphics\Scene\pugixml\pugixml.cpp" />
     <ClCompile Include="Graphics\Scene\Scene.cpp" />
     <ClCompile Include="Graphics\Scene\SceneExporter.cpp" />
     <ClCompile Include="Graphics\Scene\SceneImporter.cpp" />
+    <ClCompile Include="Graphics\Scene\SceneNoriExporter.cpp" />
     <ClCompile Include="Graphics\Scene\SceneRenderer.cpp" />
     <ClCompile Include="Graphics\TextureHelper.cpp" />
     <ClCompile Include="Sample.cpp" />
@@ -941,6 +947,8 @@
     <ClInclude Include="Effects\ParticleSystem\ParticleSystem.h" />
     <ClInclude Include="Effects\Shadows\CSM.h" />
     <ClInclude Include="Effects\SkyBox\SkyBox.h" />
+    <ClInclude Include="Effects\SSR\HZB.h" />
+    <ClInclude Include="Effects\SSR\SSR.h" />
     <ClInclude Include="Effects\TAA\TAA.h" />
     <ClInclude Include="Effects\ToneMapping\ToneMapping.h" />
     <ClInclude Include="Effects\Utils\GaussianBlur.h" />
@@ -1008,6 +1016,9 @@
     <ClInclude Include="Experimental\RenderPasses\BlitPass.h" />
     <ClInclude Include="Experimental\RenderPasses\DepthPass.h" />
     <ClInclude Include="Experimental\RenderPasses\ForwardLightingPass.h" />
+    <ClInclude Include="Experimental\RenderPasses\GBuffer.h" />
+    <ClInclude Include="Experimental\RenderPasses\GBufferLightingPass.h" />
+    <ClInclude Include="Experimental\RenderPasses\GBufferRaster.h" />
     <ClInclude Include="Experimental\RenderPasses\ImageLoader.h" />
     <ClInclude Include="Experimental\RenderPasses\ResolvePass.h" />
     <ClInclude Include="Falcor.h" />
@@ -1056,10 +1067,13 @@
     </ClInclude>
     <ClInclude Include="Graphics\Scene\Editor\SceneEditor.h" />
     <ClInclude Include="Graphics\Scene\Editor\SceneEditorRenderer.h" />
+    <ClInclude Include="Graphics\Scene\pugixml\pugiconfig.hpp" />
+    <ClInclude Include="Graphics\Scene\pugixml\pugixml.hpp" />
     <ClInclude Include="Graphics\Scene\Scene.h" />
     <ClInclude Include="Graphics\Scene\SceneExporter.h" />
     <ClInclude Include="Graphics\Scene\SceneExportImportCommon.h" />
     <ClInclude Include="Graphics\Scene\SceneImporter.h" />
+    <ClInclude Include="Graphics\Scene\SceneNoriExporter.h" />
     <ClInclude Include="Graphics\Scene\SceneRenderer.h" />
     <ClInclude Include="Graphics\TextureHelper.h" />
     <ClInclude Include="Renderer.h" />
@@ -1272,11 +1286,13 @@
     <None Include="..\Externals\GLM\glm\gtx\vector_angle.inl" />
     <None Include="..\Externals\GLM\glm\gtx\vector_query.inl" />
     <None Include="..\Externals\GLM\glm\gtx\wrap.inl" />
+    <None Include="Data\ApplyAO.ps.slang" />
     <None Include="Data\DefaultVS.slang" />
     <None Include="Data\Effects\CascadedShadowMap.slang" />
     <None Include="Data\Effects\DepthPass.slang" />
     <None Include="Data\Effects\FXAA.slang" />
     <None Include="Data\Effects\GaussianBlur.ps.slang" />
+    <None Include="Data\Effects\HierarchicalZBuffer.slang" />
     <None Include="Data\Effects\LeanMapping.slang" />
     <None Include="Data\Effects\ParticleConstColor.ps.slang" />
     <None Include="Data\Effects\ParticleEmit.cs.slang" />
@@ -1285,6 +1301,7 @@
     <None Include="Data\Effects\ParticleSort.cs.slang" />
     <None Include="Data\Effects\ParticleTexture.ps.slang" />
     <None Include="Data\Effects\ParticleVertex.vs.slang" />
+    <None Include="Data\Effects\ScreenSpaceReflection.slang" />
     <None Include="Data\Effects\ShadowPass.slang" />
     <None Include="Data\Effects\SkyBox.slang" />
     <None Include="Data\Effects\SSAO.ps.slang" />
@@ -1304,8 +1321,11 @@
     <None Include="Data\Framework\Shaders\TextRenderer.slang" />
     <None Include="Data\HostDeviceData.slang" />
     <None Include="Data\RenderPasses\ForwardLightingPass.slang" />
+    <None Include="Data\RenderPasses\GBufferLightingPass.slang" />
+    <None Include="Data\RenderPasses\GBufferRaster.slang" />
     <None Include="Data\ShaderCommon.slang" />
     <None Include="ShadingUtils\BRDF.slang" />
+    <None Include="ShadingUtils\GBuffer.slang" />
     <None Include="ShadingUtils\Helpers.slang" />
     <None Include="ShadingUtils\Lights.slang" />
     <None Include="ShadingUtils\Raytracing.slang" />
@@ -1395,7 +1415,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_PROJECT_DIR_=R"($(ProjectDir))";_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;IMGUI_API=__declspec(dllimport);FALCOR_D3D12;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);GLM_FORCE_DEPTH_ZERO_TO_ONE</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\..\Externals\GLM;$(ProjectDir)\..\Externals\GLFW\include;$(ProjectDir)\..\Externals\FreeImage;$(ProjectDir)\..\Externals\ASSIMP\include;$(ProjectDir)\..\Externals\FFMpeg\include;$(ProjectDir)\..\Externals\OculusSDK\LibOVR\Include;$(ProjectDir)\..\Externals\OculusSDK\LibOVRKernel\Src;$(ProjectDir)\..\Externals\OpenVR\headers;$(ProjectDir)\..\Externals\RapidJson\include;$(ProjectDir)\..\Externals\VulkanSDK\Include;$(ProjectDir)\..\Externals\Python\Include;$(ProjectDir)\..\Externals\pybind11\include;$(ProjectDir)\..;$(ProjectDir)\..\Externals\;$(ProjectDir)\..\Externals\nvapi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\..\Externals\GLM;$(ProjectDir)\..\Externals\GLFW\include;$(ProjectDir)\..\Externals\FreeImage;$(ProjectDir)\..\Externals\ASSIMP\include;$(ProjectDir)\..\Externals\FFMpeg\include;$(ProjectDir)\..\Externals\OculusSDK\LibOVR\Include;$(ProjectDir)\..\Externals\OculusSDK\LibOVRKernel\Src;$(ProjectDir)\..\Externals\OpenVR\headers;$(ProjectDir)\..\Externals\RapidJson\include;$(ProjectDir)\..\Externals\VulkanSDK\Include;$(ProjectDir)\..\Externals\Python\Include;$(ProjectDir)\..\Externals\pybind11\include;$(ProjectDir)\..;$(ProjectDir)\..\Externals\;$(ProjectDir)\..\Externals\nvapi;$(ProjectDir)\..\Externals\winpixeventruntime\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
@@ -1465,7 +1485,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_PROJECT_DIR_=R"($(ProjectDir))";_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;IMGUI_API=__declspec(dllimport);FALCOR_D3D12;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions);GLM_FORCE_DEPTH_ZERO_TO_ONE</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\..\Externals\GLM;$(ProjectDir)\..\Externals\GLFW\include;$(ProjectDir)\..\Externals\FreeImage;$(ProjectDir)\..\Externals\ASSIMP\include;$(ProjectDir)\..\Externals\FFMpeg\include;$(ProjectDir)\..\Externals\OculusSDK\LibOVR\Include;$(ProjectDir)\..\Externals\OculusSDK\LibOVRKernel\Src;$(ProjectDir)\..\Externals\OpenVR\headers;$(ProjectDir)\..\Externals\RapidJson\include;$(ProjectDir)\..\Externals\VulkanSDK\Include;$(ProjectDir)\..\Externals\Python\Include;$(ProjectDir)\..\Externals\pybind11\include;$(ProjectDir)\..;$(ProjectDir)\..\Externals\;$(ProjectDir)\..\Externals\nvapi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\..\Externals\GLM;$(ProjectDir)\..\Externals\GLFW\include;$(ProjectDir)\..\Externals\FreeImage;$(ProjectDir)\..\Externals\ASSIMP\include;$(ProjectDir)\..\Externals\FFMpeg\include;$(ProjectDir)\..\Externals\OculusSDK\LibOVR\Include;$(ProjectDir)\..\Externals\OculusSDK\LibOVRKernel\Src;$(ProjectDir)\..\Externals\OpenVR\headers;$(ProjectDir)\..\Externals\RapidJson\include;$(ProjectDir)\..\Externals\VulkanSDK\Include;$(ProjectDir)\..\Externals\Python\Include;$(ProjectDir)\..\Externals\pybind11\include;$(ProjectDir)\..;$(ProjectDir)\..\Externals\;$(ProjectDir)\..\Externals\nvapi;$(ProjectDir)\..\Externals\winpixeventruntime\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>

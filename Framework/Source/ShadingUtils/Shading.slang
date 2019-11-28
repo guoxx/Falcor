@@ -131,7 +131,7 @@ float3 RgToNormal(float2 rg)
     The `lod` parameter represents the method to use for computing
     texture level of detail, and must implement the `ITextureSampler` interface.
 */
-void applyNormalMap<L:ITextureSampler>(MaterialData m, inout ShadingData sd, L lod)
+void applyNormalMap<L:ITextureSampler>(MaterialData m, inout ShadingData sd, L lod, float flipTangent)
 {
     uint mapType = EXTRACT_NORMAL_MAP_TYPE(m.flags);
     if(mapType == NormalMapUnused) return;
@@ -152,7 +152,7 @@ void applyNormalMap<L:ITextureSampler>(MaterialData m, inout ShadingData sd, L l
     // Apply the transformation. Everything is normalized already
     sd.N = sd.T * mapN.x + sd.B * mapN.y + sd.N * mapN.z;
     sd.B = normalize(sd.B - sd.N * dot(sd.B, sd.N));
-    sd.T = normalize(cross(sd.B, sd.N));
+    sd.T = normalize(cross(sd.B, sd.N)) * flipTangent;
 }
 
 /** Internal implementation of `alphaTest`.
@@ -254,8 +254,9 @@ ShadingData _prepareShadingData<L:ITextureSampler>(VertexOut v, MaterialData m, 
     sd.V = normalize(camPosW - v.posW);
     sd.N = normalize(v.normalW);
 
-    sd.B = normalize(v.bitangentW - sd.N * (dot(v.bitangentW, sd.N)));
-    sd.T = normalize(cross(sd.B, sd.N));
+    float flipTangent = v.bitangentW.w;
+    sd.B = normalize(v.bitangentW.xyz - sd.N * (dot(v.bitangentW.xyz, sd.N)));
+    sd.T = normalize(cross(sd.B, sd.N)) * flipTangent;
 
     // Sample the spec texture
     bool sampleOcclusion = EXTRACT_OCCLUSION_MAP(m.flags) > 0;
@@ -295,7 +296,7 @@ ShadingData _prepareShadingData<L:ITextureSampler>(VertexOut v, MaterialData m, 
     sd.height = sd.height * m.heightScaleOffset.x + m.heightScaleOffset.y;
 #undef channel_type
 
-    applyNormalMap(m, sd, lod);
+    applyNormalMap(m, sd, lod, flipTangent);
     sd.NdotV = dot(sd.N, sd.V);
 
     // Flip the normal if it's backfacing

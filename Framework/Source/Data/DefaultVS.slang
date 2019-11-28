@@ -35,7 +35,7 @@ struct VertexIn
     float3 normal      : NORMAL;
 #endif
 #ifdef HAS_BITANGENT
-    float3 bitangent   : BITANGENT;
+    float4 bitangent   : BITANGENT;
 #endif
 #ifdef HAS_TEXCRD
     float2 texC        : TEXCOORD;
@@ -63,7 +63,7 @@ struct VertexIn
 struct VertexOut
 {
     INTERPOLATION_MODE float3 normalW    : NORMAL;
-    INTERPOLATION_MODE float3 bitangentW : BITANGENT;
+    INTERPOLATION_MODE float4 bitangentW : BITANGENT;
     INTERPOLATION_MODE float2 texC       : TEXCRD;
     INTERPOLATION_MODE float3 posW       : POSW;
     INTERPOLATION_MODE float3 colorV     : COLOR;
@@ -126,7 +126,8 @@ VertexOut defaultVS(VertexIn vIn)
 #endif
 
 #ifdef HAS_BITANGENT
-    vOut.bitangentW = mul(vIn.bitangent, (float3x3)getWorldMat(vIn));
+    vOut.bitangentW.xyz = mul(vIn.bitangent.xyz, (float3x3)getWorldMat(vIn));
+    vOut.bitangentW.w = vIn.bitangent.w;
 #else
     vOut.bitangentW = 0;
 #endif

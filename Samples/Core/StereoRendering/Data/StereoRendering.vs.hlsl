@@ -59,7 +59,8 @@ VertexOut main(VertexIn vIn)
 #endif
 
 #ifdef HAS_BITANGENT
-    vOut.bitangentW = mul(vIn.bitangent, (float3x3)getWorldMat(vIn)).xyz;
+    vOut.bitangentW.xyz = mul(vIn.bitangent.xyz, (float3x3)getWorldMat(vIn)).xyz;
+    vOut.bitangentW.w = vIn.bitangent.w;
 #else
     vOut.bitangentW = 0;
 #endif

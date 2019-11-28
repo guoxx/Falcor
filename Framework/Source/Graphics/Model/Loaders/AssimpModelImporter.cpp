@@ -64,6 +64,7 @@ namespace Falcor
         const glm::vec3* vertexNormalData,
         const glm::vec2* texCrdData,
         uint32_t texCrdCount,
+        glm::vec3* tangentData,
         glm::vec3* bitangentData);
 
 
@@ -151,10 +152,13 @@ namespace Falcor
     {
         if (pAiMesh->mFaces[0].mNumIndices == 3)
         {
+            pAiMesh->mTangents = new aiVector3D[pAiMesh->mNumVertices];
             pAiMesh->mBitangents = new aiVector3D[pAiMesh->mNumVertices];
 
             const glm::vec3* pPos = (glm::vec3*)pAiMesh->mVertices;
-            glm::vec3* pBi = (glm::vec3*)pAiMesh->mBitangents;
+
+            glm::vec3* pTangents = (glm::vec3*)pAiMesh->mTangents;
+            glm::vec3* pBitangents = (glm::vec3*)pAiMesh->mBitangents;
             glm::vec3* pNormals = (glm::vec3*)pAiMesh->mNormals;
             std::vector<uint32_t> indices = createIndexBufferData(pAiMesh);
 
@@ -170,7 +174,14 @@ namespace Falcor
                 }
             }
 
-            generateSubmeshTangentData<glm::vec3>(indices, pAiMesh->mNumVertices, pPos, pNormals, (texCrdCount > 0 ? texCrd.data() : nullptr), texCrdCount, pBi);
+            generateSubmeshTangentData<glm::vec3>(indices,
+                                                  pAiMesh->mNumVertices,
+                                                  pPos,
+                                                  pNormals,
+                                                  (texCrdCount > 0 ? texCrd.data() : nullptr),
+                                                  texCrdCount,
+                                                  pTangents,
+                                                  pBitangents);
         }
     }
 
@@ -185,7 +196,7 @@ namespace Falcor
     {
         { VERTEX_POSITION_LOC,      VERTEX_POSITION_NAME,       ResourceFormat::RGB32Float },
         { VERTEX_NORMAL_LOC,        VERTEX_NORMAL_NAME,         ResourceFormat::RGB32Float },
-        { VERTEX_BITANGENT_LOC,     VERTEX_BITANGENT_NAME,      ResourceFormat::RGB32Float },
+        { VERTEX_BITANGENT_LOC,     VERTEX_BITANGENT_NAME,      ResourceFormat::RGBA32Float }, // A component indicate the direction of tangent vector
         { VERTEX_TEXCOORD_LOC,      VERTEX_TEXCOORD_NAME,       ResourceFormat::RGB32Float }, //for some reason this is rgb
         { VERTEX_LIGHTMAP_UV_LOC,   VERTEX_LIGHTMAP_UV_NAME,    ResourceFormat::RGB32Float }, //for some reason this is rgb
         { VERTEX_BONE_WEIGHT_LOC,   VERTEX_BONE_WEIGHT_NAME,    ResourceFormat::RGBA32Float },
@@ -931,56 +942,69 @@ namespace Falcor
                 uint32_t location = pLayout->getElementShaderLocation(elementID);
                 uint8_t* pDst = pVertex + offset;
 
-                uint8_t* pSrc = nullptr;
-                uint32_t size = 0;
-                switch (location)
+                if (location == VERTEX_BITANGENT_LOC)
                 {
-                case VERTEX_POSITION_LOC:
-                    pSrc = (uint8_t*)(&pAiMesh->mVertices[vertexID]);
-                    size = sizeof(pAiMesh->mVertices[0]);
-                    break;
-                case VERTEX_NORMAL_LOC:
-                    pSrc = (uint8_t*)(&pAiMesh->mNormals[vertexID]);
-                    size = sizeof(pAiMesh->mNormals[0]);
-                    break;
-                case VERTEX_BITANGENT_LOC:
-                    pSrc = (uint8_t*)(&pAiMesh->mBitangents[vertexID]);
-                    size = sizeof(pAiMesh->mBitangents[0]);
-                    break;
-                case VERTEX_DIFFUSE_COLOR_LOC:
-                    pSrc = (uint8_t*)(&pAiMesh->mColors[0][vertexID]);
-                    size = sizeof(pAiMesh->mColors[0][0]);
-                    break;
-                case VERTEX_TEXCOORD_LOC:
-                    if (pAiMesh->mTextureCoords[0][vertexID].z != 0.f)
-                    {
-                        Falcor::logErrorAndExit("AssimpModelImporter::createVertexBuffer: Texcoord[0].z != 0.0");
-                    }
-                    pSrc = (uint8_t*)(&pAiMesh->mTextureCoords[0][vertexID]);
-                    size = sizeof(pAiMesh->mTextureCoords[0][vertexID]);
-                    break;
-                case VERTEX_LIGHTMAP_UV_LOC:
-                    if (pAiMesh->mTextureCoords[1][vertexID].z != 0.f)
-                    {
-                        Falcor::logErrorAndExit("AssimpModelImporter::createVertexBuffer: Texcoord[1].z != 0.0");
-                    }
-                    pSrc = (uint8_t*)(&pAiMesh->mTextureCoords[1][vertexID]);
-                    size = sizeof(pAiMesh->mTextureCoords[1][vertexID]);
-                    break;
-                case VERTEX_BONE_WEIGHT_LOC:
-                    pSrc = (uint8_t*)(&pBoneWeights[vertexID]);
-                    size = sizeof(pBoneWeights[vertexID]);
-                    break;
-                case VERTEX_BONE_ID_LOC:
-                    pSrc = (uint8_t*)(&pBoneIds[vertexID * 4]);
-                    size = sizeof(uint8_t) * 4;
-                    break;
-                default:
-                    should_not_get_here();
-                    continue;
-                }
+                    glm::vec3 tangent{ pAiMesh->mTangents[vertexID].x, pAiMesh->mTangents[vertexID].y, pAiMesh->mTangents[vertexID].z };
+                    glm::vec3 bitangent{ pAiMesh->mBitangents[vertexID].x, pAiMesh->mBitangents[vertexID].y, pAiMesh->mBitangents[vertexID].z };
+                    glm::vec3 normal{ pAiMesh->mNormals[vertexID].x, pAiMesh->mNormals[vertexID].y, pAiMesh->mNormals[vertexID].z };
 
-                memcpy(pDst, pSrc, size);
+                    glm::vec4 tmp{ bitangent.x, bitangent.y, bitangent.z, 1 };
+                    if (glm::dot(glm::cross(normal, tangent), bitangent) < 0)
+                    {
+                        tmp.w = -1;
+                    }
+                    memcpy(pDst, &tmp, sizeof(tmp));
+                }
+                else
+                {
+                    uint8_t* pSrc = nullptr;
+                    uint32_t size = 0;
+
+                    switch (location)
+                    {
+                    case VERTEX_POSITION_LOC:
+                        pSrc = (uint8_t*)(&pAiMesh->mVertices[vertexID]);
+                        size = sizeof(pAiMesh->mVertices[0]);
+                        break;
+                    case VERTEX_NORMAL_LOC:
+                        pSrc = (uint8_t*)(&pAiMesh->mNormals[vertexID]);
+                        size = sizeof(pAiMesh->mNormals[0]);
+                        break;
+                    case VERTEX_DIFFUSE_COLOR_LOC:
+                        pSrc = (uint8_t*)(&pAiMesh->mColors[0][vertexID]);
+                        size = sizeof(pAiMesh->mColors[0][0]);
+                        break;
+                    case VERTEX_TEXCOORD_LOC:
+                        if (pAiMesh->mTextureCoords[0][vertexID].z != 0.f)
+                        {
+                            Falcor::logErrorAndExit("AssimpModelImporter::createVertexBuffer: Texcoord[0].z != 0.0");
+                        }
+                        pSrc = (uint8_t*)(&pAiMesh->mTextureCoords[0][vertexID]);
+                        size = sizeof(pAiMesh->mTextureCoords[0][vertexID]);
+                        break;
+                    case VERTEX_LIGHTMAP_UV_LOC:
+                        if (pAiMesh->mTextureCoords[1][vertexID].z != 0.f)
+                        {
+                            Falcor::logErrorAndExit("AssimpModelImporter::createVertexBuffer: Texcoord[1].z != 0.0");
+                        }
+                        pSrc = (uint8_t*)(&pAiMesh->mTextureCoords[1][vertexID]);
+                        size = sizeof(pAiMesh->mTextureCoords[1][vertexID]);
+                        break;
+                    case VERTEX_BONE_WEIGHT_LOC:
+                        pSrc = (uint8_t*)(&pBoneWeights[vertexID]);
+                        size = sizeof(pBoneWeights[vertexID]);
+                        break;
+                    case VERTEX_BONE_ID_LOC:
+                        pSrc = (uint8_t*)(&pBoneIds[vertexID * 4]);
+                        size = sizeof(uint8_t) * 4;
+                        break;
+                    default:
+                        should_not_get_here();
+                        continue;
+                    }
+
+                    memcpy(pDst, pSrc, size);
+                }
             }
         }
         Buffer::BindFlags bindFlags = Buffer::BindFlags::Vertex;

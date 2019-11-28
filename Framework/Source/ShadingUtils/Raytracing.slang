@@ -79,7 +79,7 @@ VertexOut getVertexAttributes(uint triangleIndex, float3 barycentrics)
         int address = (indices[i] * 3) * 4;
         v.texC       += asfloat(gTexCrds.Load2(address))     * barycentrics[i];
         v.normalW    += asfloat(gNormals.Load3(address))     * barycentrics[i];
-        v.bitangentW += asfloat(gBitangents.Load3(address))  * barycentrics[i];
+        v.bitangentW += asfloat(gBitangents.Load4((indices[i] * 4) * 4))  * barycentrics[i];
         v.lightmapC  += asfloat(gLightMapUVs.Load2(address)) * barycentrics[i];
 #ifdef USE_INTERPOLATED_POSITION
         v.posW       += asfloat(gPositions.Load3(address))   * barycentrics[i];
@@ -91,10 +91,10 @@ VertexOut getVertexAttributes(uint triangleIndex, float3 barycentrics)
 #ifndef _MS_DISABLE_INSTANCE_TRANSFORM
     // Transform normal/bitangent to world space
     v.normalW = mul(v.normalW, (float3x3)gWorldInvTransposeMat[0]).xyz;
-    v.bitangentW = mul(v.bitangentW, (float3x3)gWorldMat[0]).xyz;
+    v.bitangentW.xyz = mul(v.bitangentW.xyz, (float3x3)gWorldMat[0]).xyz;
 #endif
     v.normalW = normalize(v.normalW);
-    v.bitangentW = normalize(v.bitangentW);
+    v.bitangentW.xyz = normalize(v.bitangentW.xyz);
     return v;
 }
 

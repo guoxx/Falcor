@@ -277,7 +277,7 @@ namespace Falcor
         const Vao* pVao = pMesh->getVao().get();
         bool hasPos = setVertexBuffer(mMeshBufferLocations.position, VERTEX_POSITION_LOC, pVao, pVars, ResourceFormat::RGB32Float);
         bool hasNormal = setVertexBuffer(mMeshBufferLocations.normal, VERTEX_NORMAL_LOC, pVao, pVars, ResourceFormat::RGB32Float);
-        bool hasBitangent = setVertexBuffer(mMeshBufferLocations.bitangent, VERTEX_BITANGENT_LOC, pVao, pVars, ResourceFormat::RGB32Float);
+        bool hasBitangent = setVertexBuffer(mMeshBufferLocations.bitangent, VERTEX_BITANGENT_LOC, pVao, pVars, ResourceFormat::RGBA32Float);
         bool hasBoneWeight = setVertexBuffer(mMeshBufferLocations.boneWeights, VERTEX_BONE_WEIGHT_LOC, pVao, pVars, ResourceFormat::RGBA32Float);
         bool hasBoneId = setVertexBuffer(mMeshBufferLocations.boneIds, VERTEX_BONE_ID_LOC, pVao, pVars, ResourceFormat::RGBA8Uint);
         assert(hasPos && hasBoneWeight && hasBoneId);

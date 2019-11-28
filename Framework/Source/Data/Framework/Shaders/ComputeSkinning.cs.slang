@@ -60,7 +60,7 @@ struct Vertex
     float3 normal;
 #endif
 #ifdef HAS_BITANGENT
-    float3 bitangent;
+    float4 bitangent;
 #endif
     float4 boneWeights;
     uint4 boneIds;
@@ -85,7 +85,7 @@ Vertex loadVertexAttributes(uint vertexIndex)
     v.normal = asfloat(gNormals.Load3((vertexIndex * 3) * 4));
 #endif
 #ifdef HAS_BITANGENT
-    v.bitangent = asfloat(gBitangents.Load3((vertexIndex * 3) * 4));
+    v.bitangent = asfloat(gBitangents.Load4((vertexIndex * 4) * 4));
 #endif
 
     // Load bone weights and IDs
@@ -103,7 +103,7 @@ void storeVertexAttributes(uint vertexIndex, Vertex v)
     gSkinnedNormals.Store3((vertexIndex * 3) * 4, asuint(v.normal));
 #endif
 #ifdef HAS_BITANGENT
-    gSkinnedBitangents.Store3((vertexIndex * 3) * 4, asuint(v.bitangent));
+    gSkinnedBitangents.Store4((vertexIndex * 4) * 4, asuint(v.bitangent));
 #endif
 }
 
@@ -150,7 +150,8 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
     vOut.normal = mul(vIn.normal, invTransposeBoneMat).xyz;
 #endif
 #ifdef HAS_BITANGENT
-    vOut.bitangent = mul(vIn.bitangent, (float3x3)boneMat).xyz;
+    vOut.bitangent.xyz = mul(vIn.bitangent.xyz, (float3x3)boneMat).xyz;
+    vOut.bitangent.w = vIn.bitangent.w;
 #endif
 
     storeVertexAttributes(vertexId, vOut);

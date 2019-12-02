@@ -1,0 +1,71 @@
+/***************************************************************************
+# Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#  * Neither the name of NVIDIA CORPORATION nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+***************************************************************************/
+import ShaderCommon;
+import Shading;
+import GBuffer;
+import Helpers;
+import DefaultVS;
+
+cbuffer PerFrameCB
+{
+    float2 gRenderTargetDim;
+};
+
+VertexOut vs(VertexIn vIn)
+{
+    VertexOut vOut = defaultVS(vIn);
+#if defined(HAS_LIGHTMAP_UV)
+    vOut.posH = float4(UvToNdc(vIn.lightmapC), 0, 1);
+#elif defined(HAS_TEXCRD)
+    vOut.posH = float4(UvToNdc(vIn.texC), 0, 1);
+#endif
+
+    return vOut;
+}
+
+struct PsOut
+{
+    float4 posW             : SV_TARGET0;
+    float4 normW            : SV_TARGET1;
+    float4 diffuseOpacity   : SV_TARGET2;
+    float4 specularRough    : SV_TARGET3;
+    float4 emissive         : SV_TARGET4;
+};
+
+PsOut ps(VertexOut vsOut, float4 pixelCrd : SV_POSITION)
+{
+    ShadingData sd = prepareShadingData(vsOut, gMaterial, gCamera.posW);
+
+    PsOut psOut;
+    psOut.posW = float4(sd.posW, 1);
+    psOut.normW = float4(sd.N, 1);
+    psOut.diffuseOpacity = float4(sd.diffuse, sd.opacity);
+    psOut.specularRough = float4(sd.specular, sd.linearRoughness);
+    psOut.emissive = float4(sd.emissive, 1);
+    return psOut;
+}

@@ -26,50 +26,35 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************/
 #include "Framework.h"
-#include "GBuffer.h"
-#include "GBufferLightingPass.h"
+#include "GBufferShadingTextureSpace.h"
 
 namespace
 {
-    const char kShaderFilename[] = "RenderPasses\\GBufferLightingPass.slang";
+    const char kShaderFilename[] = "GBufferShadingTextureSpace.slang";
 }
 
-RenderPassReflection GBufferLightingPass::reflect() const
-{
-    RenderPassReflection r;
-    for (int i = 0; i < kGBufferChannelDesc.size(); ++i)
-    {
-        r.addInput(kGBufferChannelDesc[i].name, kGBufferChannelDesc[i].desc);
-    }
-    r.addInput("depthStencil", "depth and stencil");
-
-    r.addOutput("output", "").format(ResourceFormat::RGBA16Float).bindFlags(Resource::BindFlags::ShaderResource | Resource::BindFlags::UnorderedAccess | Resource::BindFlags::RenderTarget);
-
-    return r;
-}
-
-bool GBufferLightingPass::parseDictionary(const Dictionary& dict)
+bool GBufferShadingTextureSpace::parseDictionary(const Dictionary& dict)
 {
     for (const auto& v : dict)
     {
-        logWarning("Unknown field `" + v.key() + "` in a GBufferLightingPass dictionary");
+        logWarning("Unknown field `" + v.key() + "` in a GBufferShadingTextureSpace dictionary");
     }
     return true;
 }
 
-GBufferLightingPass::SharedPtr GBufferLightingPass::create(const Dictionary& dict)
+GBufferShadingTextureSpace::SharedPtr GBufferShadingTextureSpace::create(const Dictionary& dict)
 {
-    SharedPtr pPass = SharedPtr(new GBufferLightingPass);
+    SharedPtr pPass = SharedPtr(new GBufferShadingTextureSpace);
     return pPass->parseDictionary(dict) ? pPass : nullptr;
 }
 
-Dictionary GBufferLightingPass::getScriptingDictionary() const
+Dictionary GBufferShadingTextureSpace::getScriptingDictionary() const
 {
     Dictionary dict;
     return dict;
 }
 
-GBufferLightingPass::GBufferLightingPass() : RenderPass("GBufferLightingPass")
+GBufferShadingTextureSpace::GBufferShadingTextureSpace() : RenderPass("GBufferShadingTextureSpace")
 {
     GraphicsProgram::Desc d;
     d.addShaderLibrary(kShaderFilename).vsEntry("VSMain").psEntry("PSMain");
@@ -108,27 +93,29 @@ GBufferLightingPass::GBufferLightingPass() : RenderPass("GBufferLightingPass")
     mpVars->setSampler("gPointSampler", pPointSampler);
 
     const ParameterBlockReflection* pParamBlockReflector = pReflector->getDefaultParameterBlock().get();
-    mBindLocations.gbufferRT = pParamBlockReflector->getResourceBinding("gGbufferRT");
-    mBindLocations.depthTex = pParamBlockReflector->getResourceBinding("gDepthTex");
-    mBindLocations.visibilityBuffer = pParamBlockReflector->getResourceBinding("visibilityBuffer");
+    mBindLocations.gbufferRT = pParamBlockReflector->getResourceBinding("gGBufferRT");
+    //mBindLocations.depthTex = pParamBlockReflector->getResourceBinding("gDepthTex");
+    //mBindLocations.visibilityBuffer = pParamBlockReflector->getResourceBinding("visibilityBuffer");
 }
 
-void GBufferLightingPass::onResize(uint32_t width, uint32_t height)
+void GBufferShadingTextureSpace::onResize(uint32_t width, uint32_t height)
 {
 }
 
-void GBufferLightingPass::setScene(const Scene::SharedPtr& pScene)
+void GBufferShadingTextureSpace::setScene(const Scene::SharedPtr& pScene)
 {
     mpScene = pScene;
 }
 
-void GBufferLightingPass::renderUI(Gui* pGui, const char* uiGroup)
+void GBufferShadingTextureSpace::renderUI(Gui* pGui, const char* uiGroup)
 {
 }
 
-void GBufferLightingPass::execute(RenderContext* pContext, const Fbo::SharedPtr& pGBufferFbo, Texture::SharedPtr visibilityTexture, const Fbo::SharedPtr& pTargetFbo)
+void GBufferShadingTextureSpace::execute(RenderContext* pContext,
+                                         const Fbo::SharedPtr& pGBufferFbo,
+                                         const Fbo::SharedPtr& pTargetFbo)
 {
-    setVarsData(pGBufferFbo, visibilityTexture);
+    setVarsData(pGBufferFbo);
 
     mpState->pushFbo(pTargetFbo);
 
@@ -143,30 +130,28 @@ void GBufferLightingPass::execute(RenderContext* pContext, const Fbo::SharedPtr&
     mpState->popFbo();    
 }
 
-void GBufferLightingPass::execute(RenderContext* pContext, const RenderData* pRenderData)
+RenderPassReflection GBufferShadingTextureSpace::reflect() const
 {
-    Fbo::SharedPtr pGBufferFbo = Fbo::create();
-    pGBufferFbo->attachDepthStencilTarget(pRenderData->getTexture("depthStencil"));
-    for (int i = 0; i < kGBufferChannelDesc.size(); ++i)
-    {
-        pGBufferFbo->attachColorTarget(pRenderData->getTexture(kGBufferChannelDesc[i].name), i);
-    }
-
-    Fbo::SharedPtr pTargetFbo = Fbo::create();
-    pTargetFbo->attachColorTarget(pRenderData->getTexture("output"), 0);
-    execute(pContext, pGBufferFbo, pRenderData->getTexture("visibilityBuffer"), pTargetFbo);
+    should_not_get_here();
+    RenderPassReflection r;
+    return r;
 }
 
-void GBufferLightingPass::setVarsData(const Fbo::SharedPtr& pGBufferFbo, Texture::SharedPtr visibilityTexture)
+void GBufferShadingTextureSpace::execute(RenderContext* pContext, const RenderData* pRenderData)
+{
+    should_not_get_here();
+}
+
+void GBufferShadingTextureSpace::setVarsData(const Fbo::SharedPtr& pGBufferFbo)
 {
     // SRV binding
     ParameterBlock* pDefaultBlock = mpVars->getDefaultBlock().get();
-    for (int i = 0; i < kGBufferChannelDesc.size(); ++i)
+    for (int i = 0; i < 8; ++i)
     {
         pDefaultBlock->setSrv(mBindLocations.gbufferRT, i, pGBufferFbo->getColorTexture(i)->getSRV());
     }
-    pDefaultBlock->setSrv(mBindLocations.depthTex, 0, pGBufferFbo->getDepthStencilTexture()->getSRV());
-    pDefaultBlock->setSrv(mBindLocations.visibilityBuffer, 0, visibilityTexture->getSRV());
+    //pDefaultBlock->setSrv(mBindLocations.depthTex, 0, pGBufferFbo->getDepthStencilTexture()->getSRV());
+    //pDefaultBlock->setSrv(mBindLocations.visibilityBuffer, 0, visibilityTexture->getSRV());
 
     // InternalPerFrameCB update
     // Set camera

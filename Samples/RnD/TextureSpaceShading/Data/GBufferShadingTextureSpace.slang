@@ -32,9 +32,9 @@ __import BRDF;
 __import GBuffer;
 
 
-Texture2D gGbufferRT[8];
-Texture2D gDepthTex;
-Texture2D visibilityBuffer;
+Texture2D gGBufferRT[8];
+//Texture2D gDepthTex;
+//Texture2D visibilityBuffer;
 SamplerState gPointSampler;
 
 struct VsOut
@@ -53,19 +53,17 @@ VsOut VSMain(uint id: SV_VertexID)
 
 float4 PSMain(VsOut pIn) : SV_TARGET0
 {
-    GBufferData data = GBufferDecode(gGbufferRT, gDepthTex, gPointSampler, pIn.texC, gCamera.invViewProj);
-
-    float4 pixelCrd = pIn.pos;
+    //float4 pixelCrd = pIn.pos;
 
     // Load g-buffer data
-    float4 posW = float4(data.posW, 1);
-    float3 normW = data.normW;
-    float3 diffuse = data.diffuse;
-    float4 specRough = float4(data.specular, data.linearRoughness);
-    float3 emissive = data.emissive;
+    float4 posW = gGBufferRT[0].SampleLevel(gPointSampler, pIn.texC, 0);
+    float3 normW = gGBufferRT[1].SampleLevel(gPointSampler, pIn.texC, 0).rgb;
+    float3 diffuse = gGBufferRT[2].SampleLevel(gPointSampler, pIn.texC, 0).rgb;
+    float4 specRough = gGBufferRT[3].SampleLevel(gPointSampler, pIn.texC, 0);
+    float3 emissive = gGBufferRT[4].SampleLevel(gPointSampler, pIn.texC, 0).rgb;
 
     // Does this g-buffer pixel contain a valid piece of geometry?  (0 in pos.w for invalid)
-    bool isGeometryValid = (data.depth < 1.0f);
+    bool isGeometryValid = (posW.w != 0.0f);
     if (!isGeometryValid)
         return float4(0, 0, 0, 1);
 
@@ -93,11 +91,14 @@ float4 PSMain(VsOut pIn) : SV_TARGET0
     for (uint l = 0; l < gLightsCount; l++)
     {
         float shadowFactor = 1;
+        // TODO: no shadow for the moment
+#if 0
         if (l == 0)
         {
             shadowFactor = visibilityBuffer.Load(int3(pixelCrd.xy, 0)).r;
             shadowFactor *= sd.opacity;
         }
+#endif
         finalColor.rgb += evalMaterial(sd, gLights[l], shadowFactor).color.rgb;
     }
 

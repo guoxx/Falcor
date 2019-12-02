@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="TextureSpaceShading.cpp" />
+    <ClCompile Include="GBufferRasterTextureSpace.cpp" />
+    <ClCompile Include="GBufferShadingTextureSpace.cpp" />
+    <ClCompile Include="TextureSpaceToScreenSpace.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TextureSpaceShading.h" />
+    <ClInclude Include="GBufferRasterTextureSpace.h" />
+    <ClInclude Include="GBufferShadingTextureSpace.h" />
+    <ClInclude Include="TextureSpaceToScreenSpace.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Data">
+      <UniqueIdentifier>{fb6cc207-b58b-4548-8526-aa5f84a00cd0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\GBufferRasterTextureSpace.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\GBufferShadingTextureSpace.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\TextureSpaceToScreenSpace.slang">
+      <Filter>Data</Filter>
+    </None>
+  </ItemGroup>
+</Project>

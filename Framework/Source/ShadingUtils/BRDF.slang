@@ -110,13 +110,74 @@ float evalSmithGGX(float NdotL, float NdotV, float roughness)
     return 0.5f / (ggxv + ggxl);
 }
 
+float beckmannDistribution(float cosTheta, float alpha)
+{
+    if (cosTheta <= 0)
+    {
+        return 0;
+    }
+
+    const float cosTheta2 = cosTheta * cosTheta;
+    const float cosTheta4 = cosTheta2 * cosTheta2;
+    const float tanTheta2 = (1 - cosTheta2) / cosTheta2;
+
+    const float a2 = alpha * alpha;
+    return ((exp(-tanTheta2 / a2)) / (M_PI * a2 * cosTheta4));
+}
+
+float smithG1(const float3 v, const float3 h, const float3 N, float alpha)
+{
+    if (dot(v, h) * dot(v, N) <= 0.0f)
+    {
+        return 0.0f;
+    }
+
+    /* Perpendicular incidence -- no shadowing/masking */
+    float cosTheta = dot(v, N);
+    float sinTheta = sqrt(1-cosTheta*cosTheta);
+    float tanTheta = abs(sinTheta/cosTheta);
+    if (tanTheta == 0.0f)
+    {
+        return 1.0f;
+    }
+
+    const float b = 1.0f / (alpha * tanTheta);
+    if (b < 1.6f)
+    {
+        const float b2 = b * b;
+        return (3.535f * b + 2.181f * b2) /
+            (1.0f + 2.276f * b + 2.577f * b2);
+    }
+    else
+    {
+        return 1.0f;
+    }
+}
+
+float maskingShadowingFunction(const float3 Wi, const float3 Wo, const float3 Wh, const float3 N, float alpha)
+{
+    return smithG1(Wi, Wh, N, alpha) * smithG1(Wo, Wh, N, alpha);
+}
+
 float3 evalSpecularBrdf(ShadingData sd, LightSample ls)
 {
     float roughness = sd.roughness;
 
+#if 0
+    float3 Wo = sd.V;
+    float3 Wi = ls.L;
+    float3 Wh = normalize(Wo + Wi);
+    float3 N = sd.N;
+
+    float D = beckmannDistribution(saturate(dot(Wh, N)), roughness);
+    float G = maskingShadowingFunction(Wi, Wo, Wh, N, roughness);
+    float3 F = fresnelSchlick(sd.specular, 1, max(0, ls.LdotH));
+    return F * D * G / (4 * saturate(dot(Wi, N)) * saturate(dot(Wo, N)));
+#else
     float D = evalGGX(roughness, ls.NdotH);
     float G = evalSmithGGX(ls.NdotL, sd.NdotV, roughness);
     float3 F = fresnelSchlick(sd.specular, 1, max(0, ls.LdotH));
     return D * G * F * M_INV_PI;
+#endif
 }
 #endif	// _FALCOR_BRDF_SLANG_

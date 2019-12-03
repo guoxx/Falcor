@@ -222,7 +222,7 @@ void TextureSpaceShading::updateLightProbe(const LightProbe::SharedPtr& pLight)
     }
 
     // Use it as infinite environment light
-    pLight->setRadius(0);
+    pLight->markAsInfiniteEnvironmentLight();
     pLight->setSampler(mpSceneSampler);
     pScene->addLightProbe(pLight);
 }

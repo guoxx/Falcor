@@ -226,6 +226,13 @@ namespace Falcor
         return ingetrator;
     }
 
+    pugi::xml_node addDenoiser(pugi::xml_node& parent)
+    {
+        pugi::xml_node denoiser = addNodeWithType(parent, "denoiser");
+        setNodeAttr(denoiser, "type", "bcd");
+        return denoiser;
+    }
+
     pugi::xml_node addBitmapTexture(pugi::xml_node& parent, const std::string name,
         const Texture::SharedPtr& pTexture, Sampler::AddressMode addressMode)
     {
@@ -295,6 +302,7 @@ namespace Falcor
         sceneNode = addScene(rootXmlDoc);
 
         addIntegrator(sceneNode);
+        addDenoiser(sceneNode);
 
         // Write everything else
         writeModels(sceneNode);
@@ -729,6 +737,15 @@ namespace Falcor
         addVector(pointLight, "direction", pLight->getWorldDirection());
     }
 
+    void addEnvironmentMap(const LightProbe* pLightProbe, pugi::xml_node& parent)
+    {
+        pugi::xml_node envmap = addNodeWithType(parent, "emitter");
+        setNodeAttr(envmap, "type", "envmap");
+
+        addString(envmap, "filename", pLightProbe->getOrigTexture()->getSourceFilename());
+        addFloat(envmap, "scale", pLightProbe->getIntensity().r);
+    }
+
     void addPunctualLight(const Scene* pScene, uint32_t lightID, pugi::xml_node& parent)
     {
         const auto pLight = pScene->getLight(lightID);
@@ -775,6 +792,16 @@ namespace Falcor
             }
 
             addPunctualLight(mpScene, i, parent);
+        }
+
+        for (uint32_t i = 0; i < mpScene->getLightProbeCount(); ++i)
+        {
+            const LightProbe::SharedPtr& pLightProbe = mpScene->getLightProbe(i);
+            // environment light
+            if (pLightProbe->isInfiniteEnvironmentLight())
+            {
+                addEnvironmentMap(pLightProbe.get(), parent);
+            }
         }
     }
 

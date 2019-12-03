@@ -82,6 +82,9 @@ namespace Falcor
         */
         void renderUI(Gui* pGui, const char* group = nullptr);
 
+        void markAsInfiniteEnvironmentLight() { mData.radius = -1; }
+        bool isInfiniteEnvironmentLight() const { return mData.radius < 0; }
+
         /** Set the light probe's world-space position
         */
         void setPosW(const vec3& posW) { mData.posW = posW; }

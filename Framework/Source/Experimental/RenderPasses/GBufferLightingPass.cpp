@@ -190,6 +190,8 @@ void GBufferLightingPass::setVarsData(const Fbo::SharedPtr& pGBufferFbo, Texture
 
     if (mpScene->getLightProbeCount() > 0)
     {
-        assert(false);
+        // #TODO Support multiple light probes
+        LightProbe::setCommonIntoProgramVars(mpVars.get(), "gProbeShared");
+        mpScene->getLightProbe(0)->setIntoProgramVars(mpVars.get(), mpInternalPerFrameCB.get(), "gLightProbe");
     }
 }

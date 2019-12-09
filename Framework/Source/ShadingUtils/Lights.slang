@@ -121,10 +121,10 @@ LightSample evalAreaLight(in AreaLightData light, in float3 surfacePosW)
     return ls;
 }
 
-float roughnessToLod(float roughness, float mipCount)
+float linearRoughnessToLod(float linearRoughness, float mipCount)
 {
     // match the discrete parameterization in LightProbe.cpp
-    return roughness * (mipCount - 1);
+    return linearRoughness * (mipCount - 1);
     //return sqrt(linearRoughness) * (mipCount - 1);
 }
 
@@ -190,7 +190,7 @@ float3 evalLightProbeSpecular(LightProbeData probe, ShadingData sd, float3 L)
     probe.resources.specularTexture.GetDimensions(0, width, height, mipCount);
 
     float3 dominantDir = getSpecularDominantDir(sd.N, L, sd.roughness);
-    float mipLevel = roughnessToLod(sd.roughness, mipCount);
+    float mipLevel = linearRoughnessToLod(sd.linearRoughness, mipCount);
 
     float2 uv;
     if (probe.radius < 0.0f)

@@ -84,7 +84,8 @@ namespace Falcor
             mpVars->getDefaultBlock()->setTexture("gInputTex", pTexture);
             mpVars["DataCB"]["gSampleCount"] = sampleCount;
 
-            Texture::SharedPtr pOutput = Texture::create2D(size, size, format, 1, Texture::kMaxPossible, nullptr, Resource::BindFlags::ShaderResource | Resource::BindFlags::RenderTarget);
+            uint32_t mipLevels = static_cast<uint32_t>(std::log2(size / mMinSizeOfSpecTexture)) + 1;
+            Texture::SharedPtr pOutput = Texture::create2D(size, size, format, 1, mipLevels, nullptr, Resource::BindFlags::ShaderResource | Resource::BindFlags::RenderTarget);
 
             GraphicsState::SharedPtr pState = pContext->getGraphicsState();
             pContext->pushGraphicsVars(mpVars);
@@ -96,7 +97,7 @@ namespace Falcor
                 pFbo->attachColorTarget(pOutput, 0, i);
 
                 // Roughness to integrate for on current mip level
-                mpVars["DataCB"]["gRoughness"] = float(i) / float(mipCount - 1);
+                mpVars["DataCB"]["gLinearRoughness"] = float(i) / float(mipCount - 1);
 
                 pState->pushFbo(pFbo);
                 mpSpecularLDPass->execute(pContext);
@@ -135,8 +136,8 @@ namespace Falcor
         FullScreenPass::UniquePtr mpDFGPass;
         GraphicsVars::SharedPtr mpVars;
         Sampler::SharedPtr mpSampler;
+        uint32_t mMinSizeOfSpecTexture = 16;
     };
-
     static PreIntegration sIntegration;
 
     LightProbe::LightProbe(RenderContext* pContext, const Texture::SharedPtr& pTexture, uint32_t diffSamples, uint32_t specSamples, uint32_t diffSize, uint32_t specSize, ResourceFormat preFilteredFormat)

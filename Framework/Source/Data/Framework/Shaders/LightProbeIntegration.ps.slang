@@ -34,7 +34,7 @@ Texture2D gInputTex : register(t1);
 
 cbuffer DataCB : register(b0)
 {
-    float gRoughness;
+    float gLinearRoughness;
     uint32_t gSampleCount;
 }
 
@@ -77,10 +77,6 @@ float4 integrateSpecularLD(float3 V, float3 N, float roughness)
     float width, height, mipCount;
     gInputTex.GetDimensions(0, width, height, mipCount);
 
-    // As if the texture was wrapped around a cube like a cube map
-    // The original algorithm uses cube map dimensions to calculate solid angle, but we don't use cube maps
-    float cubeWidth = width / 4;
-
     float3 accBrdf = 0;
     float accBrdfWeight = 0;
     float NdotV = saturate(dot(N, V));
@@ -99,16 +95,22 @@ float4 integrateSpecularLD(float3 V, float3 N, float roughness)
             // Our GGX function does not include division by PI
             float pdf = (evalGGX(roughness, NdotH) * M_INV_PI) * NdotH / (4 * LdotH);
 
+            // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch20.html
+             // - OmegaS: Solid angle associated to a sample
+             // - OmegaP: Solid angle associated to a pixel of the input texture
             float omegaS = 1 / (gSampleCount * pdf);
-            float omegaP = 4.0 * M_PI / (6 * cubeWidth * cubeWidth);
+            float omegaP = 4.0 * M_PI / (width * height);
             float mipLevel = clamp(0.5 * log2(omegaS / omegaP), 0, mipCount);
 
             float2 uv = dirToSphericalCrd(L);
             float3 Li = gInputTex.SampleLevel(gSampler, uv, mipLevel).rgb;
             float weight = NdotL;
+
+#if 0
             weight *= evalSmithGGX(NdotL, NdotV, roughness);
             weight *= LdotH / NdotH; // this is likely 1
             weight *= saturate(1 - saturate(pow(1 - LdotH, 5))); // neglecting bias
+#endif
 
             accBrdf += Li * weight;
             accBrdfWeight += weight;
@@ -187,7 +189,9 @@ float4 main(float2 texC : TEXCOORD, float4 posS : SV_POSITION) : SV_TARGET0
 #endif
 
 #ifdef _INTEGRATE_SPECULAR_LD
-    return integrateSpecularLD(dir, dir, max(0.01, gRoughness));
+    float roughness = clampLinearRoughness(gLinearRoughness);
+    float alpha = roughness * roughness;
+    return integrateSpecularLD(dir, dir, alpha);
 #endif
 
 #endif // _INTEGRATE_DFG else

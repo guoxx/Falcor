@@ -599,7 +599,7 @@ void TextureSpaceShading::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
             if (saveFileDialog(SceneNoriExporter::kFileExtensionFilters, filename))
             {
                 vec2 sz{ mpGBufferFbo->getWidth(), mpGBufferFbo->getHeight() };
-                SceneNoriExporter::saveScene(filename, mpSceneRenderer->getScene().get(), sz);
+                SceneNoriExporter::saveScene(filename, mpSceneRenderer->getScene().get(), nullptr, sz);
             }
         }
 

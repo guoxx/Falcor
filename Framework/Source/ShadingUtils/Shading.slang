@@ -284,7 +284,7 @@ ShadingData _prepareShadingData<L:ITextureSampler>(VertexOut v, MaterialData m, 
         }
     }
 
-    sd.linearRoughness = max(0.08, sd.linearRoughness); // Clamp the roughness so that the BRDF won't explode
+    sd.linearRoughness = clampLinearRoughness(sd.linearRoughness);
     sd.roughness = sd.linearRoughness * sd.linearRoughness;
     sd.emissive = sampleTexture(m.resources.emissive, m.resources.samplerState, v.texC, float4(m.emissive, 1), EXTRACT_EMISSIVE_TYPE(m.flags), lod).rgb;
     sd.IoR = m.IoR;

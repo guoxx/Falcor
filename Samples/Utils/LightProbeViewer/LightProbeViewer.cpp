@@ -27,6 +27,7 @@
 ***************************************************************************/
 #include "LightProbeViewer.h"
 #include "Data/HostDeviceSharedMacros.h"
+#include <Graphics/Scene/SceneNoriExporter.h>
 
 const std::string LightProbeViewer::kEnvMapName = "LightProbes/10-Shiodome_Stairs_3k.dds";
 
@@ -125,6 +126,16 @@ void LightProbeViewer::updateLightProbe(LightProbe::SharedPtr pLightProbe)
 void LightProbeViewer::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
 {
     pGui->addText("Press 'R' to reset scene camera");
+
+    if (pGui->addButton("Export Scene To Nori Renderer"))
+    {
+        std::string filename;
+        if (saveFileDialog(SceneNoriExporter::kFileExtensionFilters, filename))
+        {
+            vec2 sz{ pSample->getWindow()->getClientAreaWidth(), pSample->getWindow()->getClientAreaHeight() };
+            SceneNoriExporter::saveScene(filename, mpSceneRenderer->getScene().get(), mpCamera.get(), sz);
+        }
+    }
 
     if (pGui->addButton("Load Light Probe"))
     {
@@ -318,7 +329,7 @@ void LightProbeViewer::resetCamera()
         mpCamera->setDepthRange(0.001f, radius * 10.0f);
 
         // Update the controllers
-        mCameraController.setCameraSpeed(radius * 0.25f);
+        mCameraController.setCameraSpeed(radius);
     }
 }
 

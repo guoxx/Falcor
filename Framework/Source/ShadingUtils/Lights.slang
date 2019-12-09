@@ -123,6 +123,7 @@ LightSample evalAreaLight(in AreaLightData light, in float3 surfacePosW)
 
 float linearRoughnessToLod(float linearRoughness, float mipCount)
 {
+    return linearRoughness * (mipCount - 1);
     return sqrt(linearRoughness) * (mipCount - 1);
 }
 

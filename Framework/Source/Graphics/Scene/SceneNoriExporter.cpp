@@ -40,9 +40,9 @@ namespace Falcor
 {
     FileDialogFilterVec SceneNoriExporter::kFileExtensionFilters = { {"xml", "Nori Scene Files"} };
 
-    bool SceneNoriExporter::saveScene(const std::string& filename, const Scene* pScene, vec2 viewportSize)
+    bool SceneNoriExporter::saveScene(const std::string& filename, const Scene* pScene, const Camera* pCamera, vec2 viewportSize)
     {
-        SceneNoriExporter exporter(filename, pScene, viewportSize);
+        SceneNoriExporter exporter(filename, pScene, pCamera, viewportSize);
         return exporter.save();
     }
 
@@ -669,7 +669,8 @@ namespace Falcor
 
             addComments(obj, pInstance->getName());
 
-            std::string filename = pModel->getFilename();
+            std::string filename;
+            findFileInDataDirectories(pModel->getFilename(), filename);
             addString(obj, "filename", filename);
 
             addTransformWithMatrix(obj, "toWorld", pInstance->getTransformMatrix());
@@ -776,12 +777,7 @@ namespace Falcor
 
     void SceneNoriExporter::writeLights(pugi::xml_node& parent)
     {
-        if (mpScene->getLightCount() == 0)
-        {
-            return;
-        }
-
-        addComments(parent, "Punctual light sources");
+        //addComments(parent, "Punctual light sources");
 
         for (uint32_t i = 0; i < mpScene->getLightCount(); i++)
         {
@@ -845,14 +841,13 @@ namespace Falcor
 
     void SceneNoriExporter::writeCameras(pugi::xml_node& parent)
     {
-        if (mpScene->getCameraCount() == 0)
+        const Camera* pCamera = (mpCamera != nullptr) ? mpCamera : mpScene->getActiveCamera().get();
+        if (pCamera == nullptr)
         {
             return;
         }
 
         addComments(parent, "Default Camera");
-
-        const Camera* pCamera = mpScene->getActiveCamera().get();
         addPerspectiveCamera(mpScene, pCamera, parent, mViewportSize, mSampleCount);
     }
 }

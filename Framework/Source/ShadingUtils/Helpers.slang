@@ -36,7 +36,8 @@ float2 dirToSphericalCrd(float3 direction)
 {
 #if 1
     float3 d = normalize(direction);
-    float2 uv = float2(atan2(d.x, -d.z) / (2 * M_PI), acos(d.y) / M_PI);
+    float2 uv = float2(atan2(d.z, d.x) + M_PI/2, acos(d.y));
+    uv /= float2(2 * M_PI, M_PI);
     // remap from ([-0.5~0.5], [0~1]) to ([0~1],[0~1])
     if (uv.x < 0)
     {
@@ -56,12 +57,12 @@ float3 sphericalCrdToDir(float2 uv)
 {
 #if 1
     const float theta = uv.y * M_PI;
-    const float phi = uv.x * M_PI * 2 - M_PI;
+    const float phi = uv.x * M_PI * 2 - M_PI/2;
 
     float3 dir;
-    dir.x = sin(theta) * sin(phi);
+    dir.x = sin(theta) * cos(phi);
     dir.y = cos(theta);
-    dir.z = sin(theta) * cos(phi);
+    dir.z = sin(theta) * sin(phi);
 
     return normalize(dir);
 #else

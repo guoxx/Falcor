@@ -46,12 +46,12 @@ namespace Falcor
     public:
         static FileDialogFilterVec kFileExtensionFilters;
 
-        static bool saveScene(const std::string& filename, const Scene* pScene, vec2 viewportSize);
+        static bool saveScene(const std::string& filename, const Scene* pScene, const Camera* pCamera, vec2 viewportSize);
 
     private:
 
-        SceneNoriExporter(const std::string& filename, const Scene* pScene, vec2 viewportSize)
-            : mpScene(pScene), mFilename(filename), mViewportSize(viewportSize)
+        SceneNoriExporter(const std::string& filename, const Scene* pScene, const Camera* pCamera, vec2 viewportSize)
+            : mpScene(pScene), mpCamera(pCamera), mFilename(filename), mViewportSize(viewportSize)
         {}
 
         bool save();
@@ -61,6 +61,7 @@ namespace Falcor
         void writeCameras(pugi::xml_node& parent);
 
         const Scene* mpScene = nullptr;
+        const Camera* mpCamera = nullptr;
         std::string mFilename;
 
         vec2 mViewportSize;

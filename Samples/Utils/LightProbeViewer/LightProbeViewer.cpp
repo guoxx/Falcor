@@ -107,7 +107,10 @@ void LightProbeViewer::onLoad(SampleCallbacks* pSample, RenderContext* pRenderCo
 void LightProbeViewer::updateLightProbe(LightProbe::SharedPtr pLightProbe)
 {
     mpLightProbe = pLightProbe;
-    mpLightProbe->setSampler(mpLinearSampler);
+    Sampler::Desc samplerDesc;
+    samplerDesc.setFilterMode(Sampler::Filter::Linear, Sampler::Filter::Linear, Sampler::Filter::Linear);
+    samplerDesc.setAddressingMode(Sampler::AddressMode::Wrap, Sampler::AddressMode::Clamp, Sampler::AddressMode::Wrap);
+    mpLightProbe->setSampler(Sampler::create(samplerDesc));
 
     if (mpScene->getLightProbeCount() > 0)
     {
@@ -339,6 +342,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 int main(int argc, char** argv)
 #endif
 {
+    ::LoadLibraryA("C:\\bin\\RenderDoc_1.4_64\\renderdoc.dll");
+
     LightProbeViewer::UniquePtr pRenderer = std::make_unique<LightProbeViewer>();
 
     SampleConfig config;

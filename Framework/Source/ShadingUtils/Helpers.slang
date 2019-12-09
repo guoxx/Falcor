@@ -207,6 +207,12 @@ float getMetallic(float diffuse, float spec)
     return m;
 }
 
+ // Clamp the roughness so that the BRDF won't explode
+float clampLinearRoughness(float linearRoughness)
+{
+    return max(0.08, linearRoughness);
+}
+
 /*******************************************************************
                     Alpha test
 *******************************************************************/

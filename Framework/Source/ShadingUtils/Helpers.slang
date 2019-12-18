@@ -105,7 +105,7 @@ float3 getPerpendicularStark(float3 u)
     uint xm = ((a.x - a.y) < 0 && (a.x - a.z) < 0) ? 1 : 0;
     uint ym = (a.y - a.z) < 0 ? (1 ^ xm) : 0;
     uint zm = 1 ^ (xm | ym);
-    return cross(u, float3(xm, ym, zm));
+    return normalize(cross(u, float3(xm, ym, zm)));
 }
 
 float3 getPerpendicularSimple(float3 u)

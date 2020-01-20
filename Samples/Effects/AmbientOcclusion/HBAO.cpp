@@ -10,13 +10,6 @@
 
 using namespace Falcor;
 
-Gui::DropdownList kBlurModeList =
-{
-    { 0, "None" },
-    { 1, "Gaussian" },
-    { 2, "Bilateral" },
-};
-
 HBAO::SharedPtr HBAO::create(const uvec2& aoMapSize, uint32_t kernelSize, uint32_t blurSize, float blurSigma)
 {
     return SharedPtr(new HBAO(aoMapSize, kernelSize, blurSize, blurSigma));
@@ -30,9 +23,6 @@ HBAO::HBAO(const uvec2& aoMapSize, uint32_t kernelSize, uint32_t blurSize, float
 
     mpSSAOState = GraphicsState::create();
 
-    mpBlur = GaussianBlur::create(5, 2.0f);
-    mpBilateralFilter = BilateralFilter::create(5, 2.0f);
-
     Sampler::Desc samplerDesc;
     samplerDesc.setFilterMode(Sampler::Filter::Point, Sampler::Filter::Point, Sampler::Filter::Point).setAddressingMode(Sampler::AddressMode::Clamp, Sampler::AddressMode::Clamp, Sampler::AddressMode::Clamp);
     mpPointSampler = Sampler::create(samplerDesc);
@@ -42,12 +32,9 @@ void HBAO::renderUI(Gui* pGui, const char* uiGroup)
 {
     if (!uiGroup || pGui->beginGroup(uiGroup))
     {
-        pGui->addFloatVar("Occlusion Ray Length", mHBAOData.mOcclusionRayLength, 0.0001f);
+        pGui->addFloatVar("Occlusion Ray Length", mOcclusionRayLength, 0.0001f);
+        pGui->addFloatSlider("Thickness", mThickness, 0, 1);
 
-        if (pGui->addCheckBox("Physically Correct", mPhysicallyCorrect))
-        {
-            createAOPass();
-        }
         if (pGui->addCheckBox("Cosine Weighted AO", mCosWeightedAO))
         {
             createAOPass();
@@ -56,17 +43,6 @@ void HBAO::renderUI(Gui* pGui, const char* uiGroup)
         pGui->addCheckBox("Debug View", mDebugView);
         pGui->addInt2Var("Debug Pixel", mDebugPixel);
         pGui->addFloatSlider("Step Size Linear Blend", mStepSizeLinearBlend, 0, 1);
-
-        pGui->addDropdown("Blur Mode", kBlurModeList, (uint32_t&)mBlurMode);
-
-        if (mBlurMode == BlurMode::Gaussian)
-        {
-            mpBlur->renderUI(pGui, "Gaussian Filter");
-        }
-        else if (mBlurMode == BlurMode::Bilateral)
-        {
-            mpBilateralFilter->renderUI(pGui, "Bilateral Filter");
-        }
 
         if (uiGroup) pGui->endGroup();
     }
@@ -80,11 +56,12 @@ void HBAO::generateAOMapInternal(RenderContext* pContext, const Camera* pCamera,
     const float fovY = Falcor::focalLengthToFovY(pCamera->getFocalLength(), pCamera->getFrameHeight());
     pSSAOCB->setVariable("gTanHalfFovY", std::tan(fovY/2.0f));
     pSSAOCB->setVariable("gAspectRatio", pCamera->getAspectRatio());
-    pSSAOCB->setVariable("gRayLength", mHBAOData.mOcclusionRayLength);
-    pSSAOCB->setVariable("gSquaredRayLength", mHBAOData.mOcclusionRayLength*mHBAOData.mOcclusionRayLength);
+    pSSAOCB->setVariable("gRayLength", mOcclusionRayLength);
+    pSSAOCB->setVariable("gSquaredRayLength", mOcclusionRayLength*mOcclusionRayLength);
     pSSAOCB->setVariable("gFrameCount", mFrameCount);
     pSSAOCB->setVariable("gDebugPixel", mDebugPixel);
     pSSAOCB->setVariable("gStepSizeLinearBlend", mStepSizeLinearBlend);
+    pSSAOCB->setVariable("gThickness", mThickness);
     mFrameCount += 1;
 
     // Update state/vars
@@ -122,17 +99,6 @@ Texture::SharedPtr HBAO::generateAOMap(RenderContext* pContext, const Camera* pC
     generateAOMapInternal(pContext, pCamera, pDepthTexture, pNormalTexture);
     pContext->popGraphicsState();
 
-    // Blur
-    if (mBlurMode == BlurMode::Gaussian)
-    {
-        mpBlur->execute(pContext, mpAOFbo->getColorTexture(0), mpAOFbo); 
-    }
-    else if (mBlurMode == BlurMode::Bilateral)
-    {
-        mpBilateralFilter->execute(pContext, pCamera, mpAOFbo->getColorTexture(0), pDepthTexture, mpAOTmpFbo);
-        pContext->blit(mpAOTmpFbo->getColorTexture(0)->getSRV(), mpAOFbo->getColorTexture(0)->getRTV());
-    }
-
     pContext->blit(mpAOFbo->getColorTexture(0)->getSRV(), mpAOHistoryFbo->getColorTexture(0)->getRTV());
 
     if (mDebugView)
@@ -164,7 +130,6 @@ void HBAO::resizeAOMap(const uvec2& aoMapSize)
 void HBAO::createAOPass()
 {
     mpSSAOPass = FullScreenPass::create("HBAO.ps.hlsl", Program::DefineList(), true, true, 0, false, Shader::CompilerFlags::EmitDebugInfo);
-    mpSSAOPass->getProgram()->addDefine("PHYSICALLY_CORRECT", mPhysicallyCorrect ? std::to_string(1) : std::to_string(0));
     mpSSAOPass->getProgram()->addDefine("COSINE_WEIGHTED_AO", mCosWeightedAO ? std::to_string(1) : std::to_string(0));
     mpSSAOVars = GraphicsVars::create(mpSSAOPass->getProgram()->getReflector());
 

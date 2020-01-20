@@ -38,8 +38,6 @@ namespace Falcor
         Fbo::SharedPtr mpAOTmpFbo;
         Fbo::SharedPtr mpAOHistoryFbo;
 
-        BilateralFilter::SharedPtr mpBilateralFilter;
-
         Fbo::SharedPtr mpDebugFbo;
         TypedBuffer<glm::vec4>::SharedPtr mpDebugData;
 
@@ -64,27 +62,13 @@ namespace Falcor
         GraphicsVars::SharedPtr mpSSAOVars;
 
         float mFrameCount = 1;
-        bool mPhysicallyCorrect = true;
         bool mCosWeightedAO = true;
-
-        enum BlurMode
-        {
-            None,
-            Gaussian,
-            Bilateral,
-        };
-
-        BlurMode mBlurMode = None;
-        GaussianBlur::UniquePtr mpBlur;
     
+        float mOcclusionRayLength = 1.0f;
+        float mThickness = 0.9;
         float mStepSizeLinearBlend = 0.5;
         bool mDebugView;
         int2 mDebugPixel;
-
-        struct HBAOData
-        {
-            float mOcclusionRayLength = 1.0f;
-        } mHBAOData;
     };
 
 }

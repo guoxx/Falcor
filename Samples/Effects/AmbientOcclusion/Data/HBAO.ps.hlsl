@@ -8,9 +8,9 @@ __import Helpers;
 
 #define DISTANCE_FALLOFF 1
 
-static const int NUM_DIRECTION_SAMPLE = 2;
+static const int NUM_DIRECTION_SAMPLE = 3;
 static const float DIRECTION_SAMPLE_ANGEL_STEP = M_PI/NUM_DIRECTION_SAMPLE;
-static const int NUM_STEPS = 4;
+static const int NUM_STEPS = 6;
 
 cbuffer SSAOCB : register(b0)
 {
@@ -21,6 +21,7 @@ cbuffer SSAOCB : register(b0)
     float gSquaredRayLength;
     float gFrameCount;
     float gStepSizeLinearBlend;
+    float gThickness;
     int2 gDebugPixel;
 }
 
@@ -97,7 +98,7 @@ float4 snapToTexelCenter(float4 uv)
 #if DISTANCE_FALLOFF
 float2 distanceFalloff(float2 x)
 {
-    return saturate(x/40);
+    return saturate(x*x);
 }
 #endif
 
@@ -143,7 +144,7 @@ float4 HBAOKernel(float2 texC)
     for (int i = 0; i < NUM_DIRECTION_SAMPLE; ++i)
     {
         //const float azimuth = (asint(rand_next(randSeed)) % 16)* M_PI / 16;
-        const float azimuth = DIRECTION_SAMPLE_ANGEL_STEP * (i + rand_next(randSeed) * 0.25);
+        const float azimuth = DIRECTION_SAMPLE_ANGEL_STEP * (i + rand_next(randSeed));
         //const float azimuth = (int(texC.x * gRTSize.x + gFrameCount * 0) % 8) * (M_PI / 8);
         float2 sampleDir = float2(cos(azimuth), sin(azimuth));
         float2 uvDir = float2(sampleDir.x, -sampleDir.y);
@@ -211,7 +212,7 @@ float4 HBAOKernel(float2 texC)
         float n = acos(clamp(dot(projectedNormal, localFrameN), -1, 1));
         n *= -sign(dot(projectedNormal, tangentVec));
 
-        float thinkness = 1.0;
+        //float2 h1h2 = float2(M_PI, M_PI);
         float2 h1h2 = float2(-1, -1);
         for (int j = 1; j <= NUM_STEPS; ++j)
         {
@@ -233,19 +234,26 @@ float4 HBAOKernel(float2 texC)
             float2 dsdt = float2(dot(ds, ds), dot(dt, dt));
             float2 dsdtInvLength = rsqrt(dsdt + float2(0.0001));
             float2 dsdtCos = float2(dot(ds, localFrameN), dot(dt, localFrameN))*dsdtInvLength;
+
+            //float2 tmp = acos(dsdtCos);
+            //tmp = lerp(tmp, h1h2, pow(saturate(dsdt / gSquaredRayLength), 4));
+            //h1h2 = min(h1h2, tmp);
+
             float2 falloff = distanceFalloff(dsdt / gSquaredRayLength);
             float2 weight = step(dsdtCos.xy, h1h2.xy);
-            h1h2.xy = lerp(dsdtCos, h1h2, falloff)*(1-weight) + lerp(dsdtCos, h1h2, thinkness)*weight;
+            h1h2.xy = lerp(dsdtCos, h1h2, falloff)*(1-weight) + lerp(dsdtCos, h1h2, gThickness)*weight;
 
             if (debugPixel)
             {
                 float grayscale = float(i + 1)/NUM_DIRECTION_SAMPLE;
-                gDebugTex[uv.xy * gRTSize.xy] = float4(0, grayscale, 0, falloff.x);
-                gDebugTex[uv.zw * gRTSize.xy] = float4(0, 0, grayscale, falloff.y);
+                gDebugTex[uv.xy * gRTSize.xy] = float4(0, grayscale, 0, 0);
+                gDebugTex[uv.zw * gRTSize.xy] = float4(0, 0, grayscale, 0);
             }
             //h1h2.xy = max(dsdtCos, h1h2);
         }
 
+        //float h1 = -h1h2.x;
+        //float h2 = h1h2.y;
         float h1 = -acos(h1h2.x);
         float h2 = acos(h1h2.y);
 

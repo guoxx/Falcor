@@ -606,7 +606,7 @@ bool traceHiZ(float3 csOrigin,
 }
 
 bool rayTrace(float3 rayOrigin, float3 rayDir,
-              out float2 hitPixel, out float3 hitPosCS, float3 debugColor)
+              out float2 hitPixel, out float3 hitPosCS, out float3 debugColor)
 {
 #ifdef HIZ_RAY_TRACE
     bool bHit = traceHiZ(rayOrigin, 
@@ -645,7 +645,7 @@ bool rayTrace(float3 rayOrigin, float3 rayDir,
     if (bHit)
     {
         float2 uv = hitPixel * gZBufferSize.zw;
-        float3 N = gNormalTex.SampleLevel(gPointSampler, uv, 0).xyz * 2 - 1;
+        float3 N = decodeUnitVector(gNormalTex.SampleLevel(gPointSampler, uv, 0).xy);
         N = mul(float4(N, 0), gViewMat).xyz;
         // Ray hit upper hemisphere
         return dot(N, rayDir) < 0;

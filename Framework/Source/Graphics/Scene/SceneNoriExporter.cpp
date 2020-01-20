@@ -234,8 +234,12 @@ namespace Falcor
     }
 
     pugi::xml_node addBitmapTexture(pugi::xml_node& parent, const std::string name,
-        const Texture::SharedPtr& pTexture, Sampler::AddressMode addressMode)
+        const Texture::SharedPtr& pTexture, const Sampler::SharedPtr& pSampler)
     {
+        Sampler::AddressMode addressMode = Sampler::AddressMode::Wrap;
+        if (pSampler)
+            addressMode = pSampler->getAddressModeU();
+
         pugi::xml_node texture = addNodeWithType(parent, "texture");
         setNodeAttr(texture, "type", "bitmap");
         if (name.length())
@@ -243,7 +247,9 @@ namespace Falcor
             setNodeAttr(texture, "name", name);
         }
 
-        addString(texture, "filename", pTexture->getSourceFilename());
+        std::string fullpath;
+        findFileInDataDirectories(pTexture->getSourceFilename(), fullpath);
+        addString(texture, "filename", fullpath);
         if (addressMode == Sampler::AddressMode::Clamp)
         {
             addString(texture, "warpMode", "clamp");
@@ -542,7 +548,7 @@ namespace Falcor
             setNodeAttr(normalmap, "type", "normalmap");
             setNodeAttr(normalmap, "name", pMat->getName());
 
-            addBitmapTexture(normalmap, "", pMat->getNormalMap(), pMat->getSampler()->getAddressModeU());
+            addBitmapTexture(normalmap, "", pMat->getNormalMap(), pMat->getSampler());
 
             curParent = normalmap;
         }
@@ -552,17 +558,17 @@ namespace Falcor
         setNodeAttr(pbr, "name", pMat->getName());
 
         if (pMat->getBaseColorTexture())
-            addBitmapTexture(pbr, "baseColor", pMat->getBaseColorTexture(), pMat->getSampler()->getAddressModeU());
+            addBitmapTexture(pbr, "baseColor", pMat->getBaseColorTexture(), pMat->getSampler());
         else
             addSpectrum(pbr, "baseColor", pMat->getBaseColor());
 
         if (pMat->getSpecularTexture())
-            addBitmapTexture(pbr, "specular", pMat->getSpecularTexture(), pMat->getSampler()->getAddressModeU());
+            addBitmapTexture(pbr, "specular", pMat->getSpecularTexture(), pMat->getSampler());
         else
             addSpectrum(pbr, "specular", pMat->getSpecularParams());
 
         if (pMat->getEmissiveTexture())
-            addBitmapTexture(pbr, "emissive", pMat->getEmissiveTexture(), pMat->getSampler()->getAddressModeU());
+            addBitmapTexture(pbr, "emissive", pMat->getEmissiveTexture(), pMat->getSampler());
         else
             addSpectrum(pbr, "emissive", pMat->getEmissiveColor());
     }
@@ -743,7 +749,9 @@ namespace Falcor
         pugi::xml_node envmap = addNodeWithType(parent, "emitter");
         setNodeAttr(envmap, "type", "envmap");
 
-        addString(envmap, "filename", pLightProbe->getOrigTexture()->getSourceFilename());
+        std::string fullpath;
+        findFileInDataDirectories(pLightProbe->getOrigTexture()->getSourceFilename(), fullpath);
+        addString(envmap, "filename", fullpath);
         addFloat(envmap, "scale", pLightProbe->getIntensity().r);
     }
 

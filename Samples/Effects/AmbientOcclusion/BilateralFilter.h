@@ -1,5 +1,5 @@
 /***************************************************************************
-# Copyright (c) 2017, NVIDIA CORPORATION. All rights reserved.
+# Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -25,23 +25,41 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************/
-__import ShaderCommon;
-__import Shading;
-__import DefaultVS;
+#pragma once
+#include "Falcor.h"
 
-struct PSOut
+using namespace Falcor;
+
+class BilateralFilter : public RenderPass, inherit_shared_from_this<RenderPass, BilateralFilter>
 {
-    float4 color : SV_TARGET0;
-    float4 normal: SV_TARGET1;
+public:
+    using SharedPtr = std::shared_ptr<BilateralFilter>;
+
+    static SharedPtr create(int kernelWidth, float sigma);
+
+    void execute(RenderContext* pContext,
+                 const Camera* pCamera,
+                 const Texture::SharedPtr& pSrcTex,
+                 const Texture::SharedPtr& pDepthTex,
+                 const Fbo::SharedPtr& pTargetFbo);
+
+    void renderUI(Gui* pGui, const char* uiGroup) override;
+
+    RenderPassReflection reflect() const override;
+    void execute(RenderContext* pContext, const RenderData* pRenderData) override;
+
+    std::string getDesc(void) override { return "Bilateral filter"; }
+
+private:
+    BilateralFilter(int kernelWidth, float sigma);
+
+    int mKernelWidth;
+    float mSigma;
+    float mSigmaDepth = 1.0;
+
+    ProgramReflection::BindLocation mSourceTexBindingLoc;
+
+    GraphicsState::SharedPtr mpState;
+    GraphicsProgram::SharedPtr mpProgram;
+    GraphicsVars::SharedPtr mpVars;
 };
-
-PSOut main(VertexOut vsOut)
-{
-    PSOut psOut;
-
-    float3 posV = mul(float4(vsOut.posW, 1), gCamera.viewMat).xyz;
-    psOut.color = float4(abs(posV).zzz, 1);
-    psOut.normal = float4(normalize(vsOut.normalW) * 0.5f + 0.5f, 1.0f);
-
-    return psOut;
-}

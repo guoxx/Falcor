@@ -12,9 +12,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AmbientOcclusion.cpp" />
+    <ClCompile Include="BilateralFilter.cpp" />
+    <ClCompile Include="DownscalePass.cpp" />
+    <ClCompile Include="HBAO.cpp" />
+    <ClCompile Include="HDAO.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AmbientOcclusion.h" />
+    <ClInclude Include="BilateralFilter.h" />
+    <ClInclude Include="DownscalePass.h" />
+    <ClInclude Include="HBAO.h" />
+    <ClInclude Include="HDAO.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Framework\Source\Falcor.vcxproj">
@@ -25,9 +33,20 @@
     <None Include="Data\AOPrePass.ps.hlsl">
       <FileType>Document</FileType>
     </None>
+    <None Include="Data\BilateralFilter.slang" />
+    <None Include="Data\ConvertToViewSpaceNormal.ps.slang" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\ApplyAO.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\DownscalePass.slang" />
+    <None Include="Data\HBAO.ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Data\HDAO.ps.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

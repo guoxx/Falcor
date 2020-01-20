@@ -27,12 +27,76 @@
 ***************************************************************************/
 __import Helpers;
 
-SamplerState gSampler;
+cbuffer PerFrameCB
+{
+    float4x4 gProjMatrix;
+};
+
+SamplerState gLinearSampler;
+SamplerState gPointSampler;
 
 Texture2D gColor;
 Texture2D gAOMap;
+Texture2D gAOHistory;
+Texture2D gLowResDepth;
+Texture2D gFullResDepth;
+
+float4 runFilter(float2 texC)
+{
+}
 
 float4 main(float2 texC : TEXCOORD) : SV_TARGET0
 {
-    return applyAmbientOcclusion(gColor.SampleLevel(gSampler, texC, 0), gAOMap, gSampler, texC);
+    float2 fullRes;
+    gFullResDepth.GetDimensions(fullRes.x, fullRes.y);
+    float2 lowRes;
+    gLowResDepth.GetDimensions(lowRes.x, lowRes.y);
+
+    //float depthInLowRes = gLowResDepth.SampleLevel(gPointSampler, texC, 0).r;
+    //float linearZInLowRes = depthToLinearZ(depthInLowRes, gProjMatrix);
+    //float4 depthInHighRes = gFullResDepth.GatherRed(gPointSampler, texC);
+    //float4 linearZInHighRes;
+    //linearZInHighRes.x = depthToLinearZ(depthInHighRes.x, gProjMatrix);
+    //linearZInHighRes.y = depthToLinearZ(depthInHighRes.y, gProjMatrix);
+    //linearZInHighRes.z = depthToLinearZ(depthInHighRes.z, gProjMatrix);
+    //linearZInHighRes.w = depthToLinearZ(depthInHighRes.w, gProjMatrix);
+
+    //float4 aoFactors = gAOMap.GatherRed(gPointSampler, texC);
+
+    //float2 lowResST = texC * lowRes;
+    //float2 weightST = lowResST - floor(lowResST) - 0.5;
+    //weightST += step(weightST, 0);
+
+    //float4 weights;
+    //weights.x = (1-weightST.x) * weightST.y;
+    //weights.y = weightST.x * weightST.y;
+    //weights.z = weightST.x * (1-weightST.y);
+    //weights.w = (1-weightST.x) * (1-weightST.y);
+    //weights = 0.25;
+
+    float accumVal = 0;
+    float accumWeight = 0;
+
+    float2 stInLowRes = floor(texC*lowRes);
+
+    float depthInHighRes = gFullResDepth[int2(texC * fullRes)].r;
+    float linearZInHighRes = depthToLinearZ(depthInHighRes, gProjMatrix);
+
+    // Brute force filtering
+    for (int row = -1; row <= 2; ++row)
+    {
+        for (int col = -1; col <= 2; ++col)
+        {
+            float depthInLowRes = gLowResDepth[int2(stInLowRes + int2(row, col))].r;
+            float linearZInLowRes = depthToLinearZ(depthInLowRes, gProjMatrix);
+
+            float aoFactor = gAOMap[int2(stInLowRes + int2(row, col))].r;
+            float weight = GaussianCoefficient(2, row*2+col*2) * GaussianCoefficient(1, (linearZInHighRes - linearZInLowRes));
+            accumVal += aoFactor * weight;
+            accumWeight += weight;
+        }
+    }
+    float currentAO = saturate(accumVal/accumWeight);
+    float historyAO = saturate(gAOHistory.Sample(gPointSampler, texC).x);
+    return lerp(historyAO, currentAO, 1.0/8);
 }

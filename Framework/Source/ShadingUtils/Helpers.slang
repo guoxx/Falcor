@@ -377,6 +377,16 @@ float rand_next(inout uint s)
 }
 
 /*******************************************************************
+   	Gaussian kernel
+*******************************************************************/  
+// Not normalized!!!
+float GaussianCoefficient(float sigma, float x)
+{
+    float p = -(x*x) / (2 * sigma*sigma);
+    return exp(p);
+}
+
+/*******************************************************************
    	3D Math
 *******************************************************************/  
 float depthToLinearZ(float depth, float4x4 mProj)

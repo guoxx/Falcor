@@ -2,9 +2,17 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="AmbientOcclusion.cpp" />
+    <ClCompile Include="HBAO.cpp" />
+    <ClCompile Include="HDAO.cpp" />
+    <ClCompile Include="DownscalePass.cpp" />
+    <ClCompile Include="BilateralFilter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AmbientOcclusion.h" />
+    <ClInclude Include="HBAO.h" />
+    <ClInclude Include="HDAO.h" />
+    <ClInclude Include="DownscalePass.h" />
+    <ClInclude Include="BilateralFilter.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Data">
@@ -16,6 +24,21 @@
       <Filter>Data</Filter>
     </None>
     <None Include="Data\ApplyAO.ps.hlsl">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\ConvertToViewSpaceNormal.ps.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\DownscalePass.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\BilateralFilter.slang">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\HBAO.ps.hlsl">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="Data\HDAO.ps.hlsl">
       <Filter>Data</Filter>
     </None>
   </ItemGroup>
